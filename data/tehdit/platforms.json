@@ -1,0 +1,400 @@
+{
+  "meta": {
+    "version": "1.0",
+    "generatedFrom": "platforms.xlsx",
+    "generatedAt": "2026-02-15T16:40:59Z",
+    "notes": "Değerler açık kaynaktan toplanmıştır. @emreoztas",
+    "units": {
+      "speed": "m/s",
+      "turnRate": "deg/s",
+      "verticalRate": "m/s",
+      "rcs": "m^2"
+    }
+  },
+  "platforms": [
+    {
+      "id": "KT01",
+      "entityType": "KinematicTarget",
+      "category": "Aircraft",
+      "model": "B52",
+      "description": "USA",
+      "defaultRCS": 100,
+      "defaultPSuccess": 0.98,
+      "kinematics": {
+        "speed": {
+          "min": 200,
+          "max": 290
+        },
+        "turnRate": {
+          "maxDegPerSec": 20
+        },
+        "vertical": {
+          "maxClimbRate": 32,
+          "maxDescentRate": 30
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 4
+    },
+    {
+      "id": "KT02",
+      "entityType": "KinematicTarget",
+      "category": "Aircraft",
+      "model": "F16",
+      "description": "USA",
+      "defaultRCS": 1.2,
+      "defaultPSuccess": 0.85,
+      "kinematics": {
+        "speed": {
+          "min": 200,
+          "max": 400
+        },
+        "turnRate": {
+          "maxDegPerSec": 20
+        },
+        "vertical": {
+          "maxClimbRate": 250,
+          "maxDescentRate": 230
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 4
+    },
+    {
+      "id": "KT03",
+      "entityType": "KinematicTarget",
+      "category": "Aircraft",
+      "model": "F4",
+      "description": "USA",
+      "defaultRCS": 6,
+      "defaultPSuccess": 0.55,
+      "kinematics": {
+        "speed": {
+          "min": 236,
+          "max": 360
+        },
+        "turnRate": {
+          "maxDegPerSec": 20
+        },
+        "vertical": {
+          "maxClimbRate": 210,
+          "maxDescentRate": 200
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 6
+    },
+    {
+      "id": "KT04",
+      "entityType": "KinematicTarget",
+      "category": "Aircraft",
+      "model": "MIG29",
+      "description": "RF",
+      "defaultRCS": 3,
+      "defaultPSuccess": 0.65,
+      "kinematics": {
+        "speed": {
+          "min": 220,
+          "max": 415
+        },
+        "turnRate": {
+          "maxDegPerSec": 22
+        },
+        "vertical": {
+          "maxClimbRate": 330,
+          "maxDescentRate": 250
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 4
+    },
+    {
+      "id": "KT05",
+      "entityType": "KinematicTarget",
+      "category": "UAV",
+      "model": "TB2",
+      "description": "TUR",
+      "defaultRCS": 0.5,
+      "defaultPSuccess": 0.6,
+      "kinematics": {
+        "speed": {
+          "min": 35,
+          "max": 60
+        },
+        "turnRate": {
+          "maxDegPerSec": 6
+        },
+        "vertical": {
+          "maxClimbRate": 8,
+          "maxDescentRate": 6
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 2
+    },
+    {
+      "id": "KT06",
+      "entityType": "KinematicTarget",
+      "category": "KamikazeUAV",
+      "model": "SHAHED",
+      "description": "IRA",
+      "defaultRCS": 0.01,
+      "defaultPSuccess": 0.3,
+      "kinematics": {
+        "speed": {
+          "min": 40,
+          "max": 50
+        },
+        "turnRate": {
+          "maxDegPerSec": 5
+        },
+        "vertical": {
+          "maxClimbRate": 3,
+          "maxDescentRate": 3
+        }
+      },
+      "payloadCapable": false,
+      "maxPayloadCount": 0
+    },
+    {
+      "id": "KT07",
+      "entityType": "KinematicTarget",
+      "category": "Aircraft",
+      "model": "Eurofighter",
+      "description": "FRA",
+      "defaultRCS": 0.5,
+      "defaultPSuccess": 0.85,
+      "kinematics": {
+        "speed": {
+          "min": 220,
+          "max": 445
+        },
+        "turnRate": {
+          "maxDegPerSec": 30
+        },
+        "vertical": {
+          "maxClimbRate": 315,
+          "maxDescentRate": 270
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 6
+    },
+    {
+      "id": "KT08",
+      "entityType": "KinematicTarget",
+      "category": "Aircraft",
+      "model": "A-10C",
+      "description": "USA",
+      "defaultRCS": 5,
+      "defaultPSuccess": 0.7,
+      "kinematics": {
+        "speed": {
+          "min": 140,
+          "max": 195
+        },
+        "turnRate": {
+          "maxDegPerSec": 15
+        },
+        "vertical": {
+          "maxClimbRate": 30,
+          "maxDescentRate": 25
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 8
+    },
+    {
+      "id": "KT09",
+      "entityType": "KinematicTarget",
+      "category": "Aircraft",
+      "model": "F-15C/E",
+      "description": "USA",
+      "defaultRCS": 5,
+      "defaultPSuccess": 0.85,
+      "kinematics": {
+        "speed": {
+          "min": 235,
+          "max": 430
+        },
+        "turnRate": {
+          "maxDegPerSec": 20
+        },
+        "vertical": {
+          "maxClimbRate": 300,
+          "maxDescentRate": 260
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 8
+    },
+    {
+      "id": "KT10",
+      "entityType": "KinematicTarget",
+      "category": "UAV",
+      "model": "AKINCI",
+      "description": "TUR",
+      "defaultRCS": 0.7,
+      "defaultPSuccess": 0.65,
+      "kinematics": {
+        "speed": {
+          "min": 70,
+          "max": 100
+        },
+        "turnRate": {
+          "maxDegPerSec": 8
+        },
+        "vertical": {
+          "maxClimbRate": 10,
+          "maxDescentRate": 8
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 4
+    },
+    {
+      "id": "KT11",
+      "entityType": "KinematicTarget",
+      "category": "UAV",
+      "model": "ANKA-S",
+      "description": "TUR",
+      "defaultRCS": 0.8,
+      "defaultPSuccess": 0.85,
+      "kinematics": {
+        "speed": {
+          "min": 55,
+          "max": 80
+        },
+        "turnRate": {
+          "maxDegPerSec": 6
+        },
+        "vertical": {
+          "maxClimbRate": 6,
+          "maxDescentRate": 5
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 2
+    },
+    {
+      "id": "KT12",
+      "entityType": "KinematicTarget",
+      "category": "UAV",
+      "model": "AKSUNGUR",
+      "description": "TUR",
+      "defaultRCS": 0.9,
+      "defaultPSuccess": 0.85,
+      "kinematics": {
+        "speed": {
+          "min": 60,
+          "max": 85
+        },
+        "turnRate": {
+          "maxDegPerSec": 6
+        },
+        "vertical": {
+          "maxClimbRate": 7,
+          "maxDescentRate": 6
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 4
+    },
+    {
+      "id": "KT13",
+      "entityType": "KinematicTarget",
+      "category": "UAV",
+      "model": "MQ-9 Reaper",
+      "description": "USA",
+      "defaultRCS": 1,
+      "defaultPSuccess": 0.75,
+      "kinematics": {
+        "speed": {
+          "min": 65,
+          "max": 85
+        },
+        "turnRate": {
+          "maxDegPerSec": 6
+        },
+        "vertical": {
+          "maxClimbRate": 8,
+          "maxDescentRate": 6
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 4
+    },
+    {
+      "id": "KT14",
+      "entityType": "KinematicTarget",
+      "category": "Aircraft",
+      "model": "Rafale",
+      "description": "FRA",
+      "defaultRCS": 1,
+      "defaultPSuccess": 0.88,
+      "kinematics": {
+        "speed": {
+          "min": 235,
+          "max": 430
+        },
+        "turnRate": {
+          "maxDegPerSec": 30
+        },
+        "vertical": {
+          "maxClimbRate": 305,
+          "maxDescentRate": 270
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 6
+    },
+    {
+      "id": "KT15",
+      "entityType": "KinematicTarget",
+      "category": "Aircraft",
+      "model": "Mirage 2000",
+      "description": "FRA",
+      "defaultRCS": 2,
+      "defaultPSuccess": 0.75,
+      "kinematics": {
+        "speed": {
+          "min": 220,
+          "max": 400
+        },
+        "turnRate": {
+          "maxDegPerSec": 25
+        },
+        "vertical": {
+          "maxClimbRate": 285,
+          "maxDescentRate": 250
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 4
+    },
+    {
+      "id": "KT16",
+      "entityType": "KinematicTarget",
+      "category": "Aircraft",
+      "model": "F-35A",
+      "description": "USA",
+      "defaultRCS": 0.005,
+      "defaultPSuccess": 0.92,
+      "kinematics": {
+        "speed": {
+          "min": 220,
+          "max": 390
+        },
+        "turnRate": {
+          "maxDegPerSec": 22
+        },
+        "vertical": {
+          "maxClimbRate": 260,
+          "maxDescentRate": 230
+        }
+      },
+      "payloadCapable": true,
+      "maxPayloadCount": 2
+    }
+  ]
+}

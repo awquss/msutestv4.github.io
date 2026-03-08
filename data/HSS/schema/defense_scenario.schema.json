@@ -1,0 +1,617 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/msu/defense_scenario.schema.json",
+  "title": "MSU Defense Scenario Schema",
+  "description": "Formal JSON Schema for defense planning output consumed by MATLAB.",
+  "type": "object",
+  "required": [
+    "scenarioId",
+    "referenceFrame",
+    "protectedAssets",
+    "systemCatalog",
+    "munitionCatalog",
+    "deploymentPlans",
+    "deployedUnits"
+  ],
+  "properties": {
+    "scenarioId": {
+      "type": "string"
+    },
+    "scenarioName": {
+      "type": "string"
+    },
+    "scenarioThreatDirection": {
+      "type": "string",
+      "enum": ["none", "north", "east", "south", "west"]
+    },
+    "referenceFrame": {
+      "$ref": "#/$defs/ReferenceFrame"
+    },
+    "protectedAssets": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ProtectedAsset" }
+    },
+    "systemCatalog": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/SystemCatalogItem" }
+    },
+    "munitionCatalog": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/MunitionCatalogItem" }
+    },
+    "deploymentPlans": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/DeploymentPlan" }
+    },
+    "deployedUnits": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/DeployedUnit" }
+    },
+    "threatScenario": {
+      "anyOf": [
+        { "$ref": "#/$defs/ThreatScenario" },
+        { "type": "null" }
+      ]
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "Coordinate2D": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" }
+      }
+    },
+    "BlindSectorRange": {
+      "type": "array",
+      "description": "Angle interval in degrees. Zero is true north, positive direction is clockwise.",
+      "items": { "type": "number", "minimum": 0, "maximum": 360 },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "ReferenceFrame": {
+      "type": "object",
+      "required": [
+        "origin",
+        "distanceUnit",
+        "altitudeUnit",
+        "speedUnit",
+        "angleUnit",
+        "angleZero",
+        "positiveAngleDirection"
+      ],
+      "properties": {
+        "origin": { "$ref": "#/$defs/Coordinate2D" },
+        "distanceUnit": { "const": "m" },
+        "altitudeUnit": { "const": "m" },
+        "speedUnit": { "const": "m/s" },
+        "angleUnit": { "const": "deg" },
+        "angleZero": { "const": "true_north" },
+        "positiveAngleDirection": { "const": "clockwise" }
+      }
+    },
+    "ProtectedAsset": {
+      "type": "object",
+      "required": ["id", "name", "HVA_value", "defenseType", "geometry"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "HVA_value": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "defenseType": {
+          "type": "string",
+          "enum": ["point", "area"]
+        },
+        "geometry": {
+          "oneOf": [
+            { "$ref": "#/$defs/PointGeometry" },
+            { "$ref": "#/$defs/PolygonGeometry" }
+          ]
+        }
+      }
+    },
+    "PointGeometry": {
+      "type": "object",
+      "required": ["type", "coordinates"],
+      "properties": {
+        "type": { "const": "Point" },
+        "coordinates": { "$ref": "#/$defs/Coordinate2D" }
+      }
+    },
+    "PolygonGeometry": {
+      "type": "object",
+      "required": ["type", "coordinates"],
+      "properties": {
+        "type": { "const": "Polygon" },
+        "coordinates": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Coordinate2D" },
+          "minItems": 3
+        }
+      }
+    },
+    "SystemCatalogItem": {
+      "type": "object",
+      "required": [
+        "code",
+        "role",
+        "components",
+        "technical",
+        "interceptor",
+        "deploymentConstraints"
+      ],
+      "properties": {
+        "code": { "type": "string" },
+        "role": { "type": "string" },
+        "components": {
+          "type": "object",
+          "required": ["radarCount", "kkmCount", "ffsCount"],
+          "properties": {
+            "radarCount": { "type": "integer", "minimum": 0 },
+            "radarHVAValue": { "type": "integer", "minimum": 1, "maximum": 10 },
+            "kkmCount": { "type": "integer", "minimum": 0 },
+            "akrCount": { "type": "integer", "minimum": 0 },
+            "eoCount": { "type": "integer", "minimum": 0 },
+            "ffsCount": { "type": "integer", "minimum": 0 },
+            "ffsMinCount": { "type": "integer", "minimum": 0 },
+            "ffsMaxCount": { "type": "integer", "minimum": 0 },
+            "missilePerFfs": { "type": "integer", "minimum": 0 },
+            "totalReadyMissile": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "technical": {
+          "type": "object",
+          "required": ["radar"],
+          "properties": {
+            "radar": {
+              "type": "object",
+              "required": ["minTrackRangeM", "illumCapacity", "setupTimeIllTrackSec", "trackRangeKm", "azimuthDeg", "elevationDeg"],
+              "properties": {
+                "minTrackRangeM": { "type": "number", "minimum": 0 },
+                "illumCapacity": { "type": "integer", "minimum": 0 },
+                "setupTimeIllTrackSec": { "type": "integer", "minimum": 0 },
+                "trackRangeKm": { "type": "number", "minimum": 0 },
+                "azimuthDeg": {
+                  "type": "object",
+                  "required": ["min", "max"],
+                  "properties": {
+                    "min": { "type": "number" },
+                    "max": { "type": "number" }
+                  }
+                },
+                "elevationDeg": {
+                  "type": "object",
+                  "required": ["min", "max"],
+                  "properties": {
+                    "min": { "type": "number" },
+                    "max": { "type": "number" }
+                  }
+                }
+              }
+            },
+            "engagement": {
+              "type": "object",
+              "properties": {
+                "effectiveRangeKm": { "type": "number", "minimum": 0 },
+                "effectiveAltitudeKm": { "type": "number", "minimum": 0 }
+              }
+            }
+          }
+        },
+        "interceptor": {
+          "type": "object",
+          "required": ["primaryMunitionCode", "reloadTimeSec", "weaponSetupTimeSec", "weaponLaunchDelaySec"],
+          "properties": {
+            "primaryMunitionCode": { "type": "string" },
+            "compatibleMunitionCodes": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "reloadTimeSec": { "type": "number", "minimum": 0 },
+            "weaponSetupTimeSec": { "type": "number", "minimum": 0 },
+            "weaponLaunchDelaySec": { "type": "number", "minimum": 0 }
+          }
+        },
+        "deploymentConstraints": {
+          "type": "object",
+          "required": ["recommendedSystemCount", "centerDistanceM", "pairDistanceM"],
+          "properties": {
+            "recommendedSystemCount": { "type": "integer", "minimum": 0 },
+            "centerDistanceM": {
+              "type": "object",
+              "required": ["min", "max"],
+              "properties": {
+                "min": { "type": "number", "minimum": 0 },
+                "max": { "type": "number", "minimum": 0 }
+              }
+            },
+            "pairDistanceM": {
+              "type": "object",
+              "required": ["radarKkm", "kkmFfs", "radarFfs", "ffsFfs"],
+              "properties": {
+                "radarKkm": { "$ref": "#/$defs/MinMaxDistance" },
+                "kkmFfs": { "$ref": "#/$defs/MinMaxDistance" },
+                "radarFfs": { "$ref": "#/$defs/MinMaxDistance" },
+                "ffsFfs": { "$ref": "#/$defs/MinMaxDistance" },
+                "radarAkr": { "$ref": "#/$defs/MinMaxDistance" },
+                "kkmAkr": { "$ref": "#/$defs/MinMaxDistance" },
+                "akrFfs": { "$ref": "#/$defs/MinMaxDistance" },
+                "radarEo": { "$ref": "#/$defs/MinMaxDistance" },
+                "kkmEo": { "$ref": "#/$defs/MinMaxDistance" },
+                "eoFfs": { "$ref": "#/$defs/MinMaxDistance" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "MinMaxDistance": {
+      "type": "object",
+      "required": ["min", "max"],
+      "properties": {
+        "min": { "type": "number", "minimum": 0 },
+        "max": { "type": "number", "minimum": 0 }
+      }
+    },
+    "MunitionCatalogItem": {
+      "type": "object",
+      "required": ["code", "name", "systemCode", "illReq", "kinematics", "effectiveness", "loadout", "engagementEnvelope"],
+      "properties": {
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "systemCode": { "type": "string" },
+        "illReq": { "type": "integer", "enum": [0, 1] },
+        "kinematics": {
+          "type": "object",
+          "required": ["speedMps"],
+          "properties": {
+            "speedMps": { "type": "number", "minimum": 0 }
+          }
+        },
+        "effectiveness": {
+          "type": "object",
+          "required": ["pSuccess"],
+          "properties": {
+            "pSuccess": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "loadout": {
+          "type": "object",
+          "required": ["missilePerFfs"],
+          "properties": {
+            "missilePerFfs": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "engagementEnvelope": {
+          "type": "object",
+          "required": ["minRangeM", "maxRangeM", "maxEffRangeM", "minAltitudeM", "maxAltitudeM"],
+          "properties": {
+            "minRangeM": { "type": "number", "minimum": 0 },
+            "maxRangeM": { "type": "number", "minimum": 0 },
+            "maxEffRangeM": { "type": "number", "minimum": 0 },
+            "minAltitudeM": { "type": "number", "minimum": 0 },
+            "maxAltitudeM": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "DeploymentPlan": {
+      "type": "object",
+      "required": ["id", "protectedAssetId", "assignments"],
+      "properties": {
+        "id": { "type": "string" },
+        "protectedAssetId": { "type": "string" },
+        "threatDirection": {
+          "type": "string",
+          "enum": ["none", "north", "east", "south", "west"]
+        },
+        "assignments": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SystemAssignment" }
+        }
+      }
+    },
+    "SystemAssignment": {
+      "type": "object",
+      "required": ["systemCode", "munitionCode", "ffsLoadout", "count"],
+      "properties": {
+        "id": { "type": "string" },
+        "systemCode": { "type": "string" },
+        "munitionCode": { "type": "string" },
+        "ffsLoadout": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/FfsLoadoutItem" },
+          "minItems": 1
+        },
+        "ffsMunitionCodes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "count": { "type": "integer", "minimum": 0 },
+        "ffsCountPerUnit": { "type": "integer", "minimum": 1 },
+        "totalReadyMissilePerUnit": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "DeployedUnit": {
+      "type": "object",
+      "required": [
+        "id",
+        "planId",
+        "protectedAssetId",
+        "systemCode",
+        "munitionCode",
+        "ffsLoadout",
+        "ffsMunitionCodes",
+        "sequence",
+        "components"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "planId": { "type": "string" },
+        "assignmentId": { "type": "string" },
+        "protectedAssetId": { "type": "string" },
+        "systemCode": { "type": "string" },
+        "munitionCode": { "type": "string" },
+        "ffsLoadout": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/FfsLoadoutItem" },
+          "minItems": 1
+        },
+        "ffsMunitionCodes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "components": {
+          "type": "object",
+          "required": ["radar", "kkm", "ffs"],
+          "properties": {
+            "radar": { "$ref": "#/$defs/RadarComponent" },
+            "kkm": { "$ref": "#/$defs/KkmComponent" },
+            "akr": { "$ref": "#/$defs/AkrComponent" },
+            "eo": { "$ref": "#/$defs/EoComponent" },
+            "ffs": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/FfsComponent" },
+              "minItems": 1
+            }
+          }
+        }
+      }
+    },
+    "RadarComponent": {
+      "type": "object",
+      "required": ["id", "position", "blindSectors", "HVA_value"],
+      "properties": {
+        "id": { "type": "string" },
+        "position": { "$ref": "#/$defs/Coordinate2D" },
+        "HVA_value": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "blindSectors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/BlindSectorRange" }
+        }
+      }
+    },
+    "KkmComponent": {
+      "type": "object",
+      "required": ["id", "position"],
+      "properties": {
+        "id": { "type": "string" },
+        "position": { "$ref": "#/$defs/Coordinate2D" }
+      }
+    },
+    "AkrComponent": {
+      "type": "object",
+      "required": ["id", "position"],
+      "properties": {
+        "id": { "type": "string" },
+        "position": { "$ref": "#/$defs/Coordinate2D" }
+      }
+    },
+    "EoComponent": {
+      "type": "object",
+      "required": ["id", "position"],
+      "properties": {
+        "id": { "type": "string" },
+        "position": { "$ref": "#/$defs/Coordinate2D" }
+      }
+    },
+    "FfsComponent": {
+      "type": "object",
+      "required": ["id", "munitionCode", "missileCount", "position", "blindSectors"],
+      "properties": {
+        "id": { "type": "string" },
+        "munitionCode": { "type": "string" },
+        "missileCount": { "type": "integer", "minimum": 0 },
+        "position": { "$ref": "#/$defs/Coordinate2D" },
+        "blindSectors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/BlindSectorRange" }
+        }
+      }
+    },
+    "FfsLoadoutItem": {
+      "type": "object",
+      "required": ["munitionCode", "missileCount"],
+      "properties": {
+        "munitionCode": { "type": "string" },
+        "missileCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ThreatScenario": {
+      "type": "object",
+      "required": ["scenarioId", "entities"],
+      "properties": {
+        "scenarioId": { "type": "string" },
+        "timeStep": { "type": "number", "minimum": 0.1 },
+        "planning": { "type": "object" },
+        "entities": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ThreatEntity" }
+        }
+      }
+    },
+    "ThreatEntity": {
+      "oneOf": [
+        { "$ref": "#/$defs/KinematicThreatEntity" },
+        { "$ref": "#/$defs/BallisticThreatEntity" }
+      ]
+    },
+    "ThreatPosition2D": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "ThreatKinematics": {
+      "type": "object",
+      "required": ["speed", "turnRate"],
+      "properties": {
+        "speed": {
+          "type": "object",
+          "required": ["min", "max"],
+          "properties": {
+            "min": { "type": "number", "minimum": 0 },
+            "max": { "type": "number", "minimum": 0 }
+          }
+        },
+        "turnRate": {
+          "type": "object",
+          "required": ["maxDegPerSec"],
+          "properties": {
+            "maxDegPerSec": { "type": "number", "minimum": 0 }
+          }
+        },
+        "vertical": { "type": "object" }
+      }
+    },
+    "ThreatWaypoint": {
+      "type": "object",
+      "required": ["position"],
+      "properties": {
+        "name": { "type": "string" },
+        "position": { "$ref": "#/$defs/ThreatPosition2D" },
+        "targetAltitude": { "type": "number" },
+        "targetSpeed": { "type": "number" }
+      }
+    },
+    "ThreatPayload": {
+      "type": "object",
+      "required": ["id", "category", "rcs", "pSuccess", "kinematics", "release"],
+      "properties": {
+        "id": { "type": "string" },
+        "category": { "type": "string" },
+        "model": { "type": "string" },
+        "rcs": { "type": "number", "minimum": 0 },
+        "pSuccess": { "type": "number", "minimum": 0, "maximum": 1 },
+        "kinematics": { "$ref": "#/$defs/ThreatKinematics" },
+        "release": {
+          "type": "object",
+          "required": ["time"],
+          "properties": {
+            "time": { "type": "number", "minimum": 0 }
+          }
+        },
+        "targetTot": { "type": "number", "minimum": 0 },
+        "releasePoint": { "$ref": "#/$defs/ThreatPosition2D" },
+        "targetPoint": { "$ref": "#/$defs/ThreatPosition2D" },
+        "targetDefinition": { "type": "object" }
+      }
+    },
+    "KinematicThreatEntity": {
+      "type": "object",
+      "required": ["id", "entityType", "category", "rcs", "pSuccess", "kinematics", "flightPlan"],
+      "properties": {
+        "id": { "type": "string" },
+        "entityType": { "const": "KinematicTarget" },
+        "category": { "type": "string" },
+        "model": { "type": "string" },
+        "rcs": { "type": "number", "minimum": 0 },
+        "pSuccess": { "type": "number", "minimum": 0, "maximum": 1 },
+        "kinematics": { "$ref": "#/$defs/ThreatKinematics" },
+        "flightPlan": {
+          "type": "object",
+          "required": ["takeoffTime", "initialState", "waypoints"],
+          "properties": {
+            "takeoffTime": { "type": "number", "minimum": 0 },
+            "initialState": {
+              "type": "object",
+              "required": ["position", "altitude", "speed", "heading"],
+              "properties": {
+                "position": { "$ref": "#/$defs/ThreatPosition2D" },
+                "altitude": { "type": "number" },
+                "speed": { "type": "number" },
+                "heading": { "type": "number" }
+              }
+            },
+            "waypoints": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/ThreatWaypoint" }
+            }
+          }
+        },
+        "payload": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ThreatPayload" }
+        }
+      }
+    },
+    "BallisticThreatEntity": {
+      "type": "object",
+      "required": ["id", "entityType", "launchTime", "trajectory", "rcs", "pSuccess"],
+      "properties": {
+        "id": { "type": "string" },
+        "entityType": { "const": "BallisticTarget" },
+        "model": { "type": "string" },
+        "launchTime": { "type": "number", "minimum": 0 },
+        "impactTime": { "type": "number", "minimum": 0 },
+        "trajectory": {
+          "type": "object",
+          "required": ["launchPoint", "boost", "midcourse", "terminal"],
+          "properties": {
+            "launchPoint": { "$ref": "#/$defs/ThreatPosition2D" },
+            "boost": {
+              "type": "object",
+              "required": ["duration", "maxAltitude"],
+              "properties": {
+                "duration": { "type": "number", "minimum": 0 },
+                "maxAltitude": { "type": "number", "minimum": 0 }
+              }
+            },
+            "midcourse": {
+              "type": "object",
+              "required": ["duration"],
+              "properties": {
+                "duration": { "type": "number", "minimum": 0 }
+              }
+            },
+            "terminal": {
+              "type": "object",
+              "required": ["impactPoint", "impactSpeed"],
+              "properties": {
+                "impactPoint": { "$ref": "#/$defs/ThreatPosition2D" },
+                "impactSpeed": { "type": "number", "minimum": 0 }
+              }
+            }
+          }
+        },
+        "impactDefinition": { "type": "object" },
+        "rcs": { "type": "number", "minimum": 0 },
+        "pSuccess": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  }
+}

@@ -1,0 +1,466 @@
+{
+  "meta": {
+    "version": "1.0",
+    "generatedFrom": "air_defense_master.xlsx",
+    "generatedAt": "2026-03-03T17:15:52+00:00",
+    "units": {
+      "distance": "km",
+      "altitude": "km",
+      "angle": "deg",
+      "componentSpacing": "m",
+      "count": "count",
+      "time": "min",
+      "probability": "0-1"
+    }
+  },
+  "systems": [
+    {
+      "id": "ADS_HSS-N",
+      "code": "HSS-N",
+      "role": "Alçak İrtifa Namlulu Nokta Hava Savunma",
+      "integration": {
+        "upperK2Managed": true,
+        "airPictureSharing": true,
+        "linkEnabled": true
+      },
+      "components": [
+        {
+          "type": "Radar",
+          "count": 1,
+          "HVA_value": 8
+        },
+        {
+          "type": "KKM",
+          "count": 1
+        },
+        {
+          "type": "EO",
+          "count": 1
+        },
+        {
+          "type": "FFS",
+          "count": 3,
+          "minCount": 1,
+          "maxCount": 3,
+          "interceptorPerComponent": 6,
+          "totalReadyInterceptor": 18
+        }
+      ],
+      "technical": {
+        "radar": {
+          "trackRange": {
+            "minTrackRangeM": 100,
+            "referenceRcsM2": 1,
+            "rangeKm": 35,
+            "rcsScaling": "range scales with fourth-root of RCS"
+          },
+          "illumCapacity": 99,
+          "setupTimeIllTrackSec": 0,
+          "azimuthDeg": {
+            "min": 0,
+            "max": 360
+          },
+          "elevationDeg": {
+            "min": 0,
+            "max": 80
+          }
+        },
+        "engagement": {
+          "effectiveRangeKm": 4,
+          "effectiveAltitudeKm": 4
+        }
+      },
+      "interceptor": {
+        "primaryMunitionCode": "MIS_HSS_N",
+        "reloadTimeMinPerMissile": 0.01,
+        "weaponSetupTimeSec": 0,
+        "weaponLaunchDelaySec": 0
+      },
+      "intraSystemDistanceConstraintsM": {
+        "radarToKkm": {
+          "min": 100,
+          "max": 500
+        },
+        "kkmToFfs": {
+          "min": 100,
+          "max": 500
+        },
+        "radarToFfs": {
+          "min": 100,
+          "max": 500
+        },
+        "radarToEo": {
+          "min": 100,
+          "max": 200
+        },
+        "kkmToEo": {
+          "min": 100,
+          "max": 200
+        },
+        "eoToFfs": {
+          "min": 100,
+          "max": 200
+        },
+        "ffsToFfs": {
+          "min": 100,
+          "max": 500
+        }
+      },
+      "compatibleMunitions": [
+        "MIS_HSS_N"
+      ]
+    },
+    {
+      "id": "ADS_HSS-A",
+      "code": "HSS-A",
+      "role": "Alcak irtifa nokta hava savunma",
+      "integration": {
+        "upperK2Managed": true,
+        "airPictureSharing": true,
+        "linkEnabled": true
+      },
+      "components": [
+        {
+          "type": "Radar",
+          "count": 1,
+          "HVA_value": 8
+        },
+        {
+          "type": "KKM",
+          "count": 1
+        },
+        {
+          "type": "FFS",
+          "count": 1,
+          "interceptorPerComponent": 4,
+          "totalReadyInterceptor": 4
+        }
+      ],
+      "technical": {
+        "radar": {
+          "trackRange": {
+            "minTrackRangeM": 100,
+            "referenceRcsM2": 1,
+            "rangeKm": 35,
+            "rcsScaling": "range scales with fourth-root of RCS"
+          },
+          "illumCapacity": 99,
+          "setupTimeIllTrackSec": 0,
+          "azimuthDeg": {
+            "min": 0,
+            "max": 360
+          },
+          "elevationDeg": {
+            "min": 0,
+            "max": 60
+          }
+        },
+        "engagement": {
+          "effectiveRangeKm": 15,
+          "effectiveAltitudeKm": 8
+        }
+      },
+      "interceptor": {
+        "primaryMunitionCode": "MIS_HSS_A",
+        "reloadTimeMinPerMissile": 5,
+        "weaponSetupTimeSec": 3,
+        "weaponLaunchDelaySec": 0
+      },
+      "intraSystemDistanceConstraintsM": {
+        "radarToKkm": {
+          "min": 0,
+          "max": 0
+        },
+        "kkmToFfs": {
+          "min": 0,
+          "max": 0
+        },
+        "radarToFfs": {
+          "min": 0,
+          "max": 0
+        },
+        "ffsToFfs": {
+          "min": 0,
+          "max": 0
+        }
+      },
+      "compatibleMunitions": [
+        "MIS_HSS_A"
+      ],
+      "note": "Tek arac kabulu: tum bilesenler ayni platformda"
+    },
+    {
+      "id": "ADS_HSS-O",
+      "code": "HSS-O",
+      "role": "Orta irtifa nokta hava savunma",
+      "integration": {
+        "upperK2Managed": true,
+        "airPictureSharing": true,
+        "linkEnabled": true
+      },
+      "components": [
+        {
+          "type": "Radar",
+          "count": 1,
+          "HVA_value": 9
+        },
+        {
+          "type": "KKM",
+          "count": 1
+        },
+        {
+          "type": "FFS",
+          "count": 3,
+          "minCount": 1,
+          "maxCount": 4,
+          "interceptorPerComponent": 6,
+          "totalReadyInterceptor": 18
+        }
+      ],
+      "technical": {
+        "radar": {
+          "trackRange": {
+            "minTrackRangeM": 100,
+            "referenceRcsM2": 1,
+            "rangeKm": 55,
+            "rcsScaling": "range scales with fourth-root of RCS"
+          },
+          "illumCapacity": 99,
+          "setupTimeIllTrackSec": 0,
+          "azimuthDeg": {
+            "min": 0,
+            "max": 360
+          },
+          "elevationDeg": {
+            "min": 0,
+            "max": 80
+          }
+        },
+        "engagement": {
+          "effectiveRangeKm": 25,
+          "effectiveAltitudeKm": 15
+        }
+      },
+      "interceptor": {
+        "primaryMunitionCode": "MIS_HSS_O",
+        "reloadTimeMinPerMissile": 5,
+        "weaponSetupTimeSec": 3,
+        "weaponLaunchDelaySec": 0
+      },
+      "intraSystemDistanceConstraintsM": {
+        "radarToKkm": {
+          "min": 100,
+          "max": 1000
+        },
+        "kkmToFfs": {
+          "min": 100,
+          "max": 1000
+        },
+        "radarToFfs": {
+          "min": 100,
+          "max": 1000
+        },
+        "ffsToFfs": {
+          "min": 100,
+          "max": 1000
+        }
+      },
+      "compatibleMunitions": [
+        "MIS_HSS_O"
+      ]
+    },
+    {
+      "id": "ADS_HSS-U",
+      "code": "HSS-U",
+      "role": "Yuksek irtifa bolge hava savunma",
+      "integration": {
+        "upperK2Managed": true,
+        "airPictureSharing": true,
+        "linkEnabled": true
+      },
+      "components": [
+        {
+          "type": "Radar",
+          "count": 1,
+          "HVA_value": 10
+        },
+        {
+          "type": "KKM",
+          "count": 1
+        },
+        {
+          "type": "AKR",
+          "count": 1
+        },
+        {
+          "type": "FFS",
+          "count": 2,
+          "minCount": 1,
+          "maxCount": 4,
+          "interceptorPerComponent": 6,
+          "totalReadyInterceptor": 12
+        }
+      ],
+      "technical": {
+        "radar": {
+          "trackRange": {
+            "minTrackRangeM": 100,
+            "referenceRcsM2": 1,
+            "rangeKm": 400,
+            "rcsScaling": "range scales with fourth-root of RCS"
+          },
+          "illumCapacity": 99,
+          "setupTimeIllTrackSec": 0,
+          "azimuthDeg": {
+            "min": 0,
+            "max": 360
+          },
+          "elevationDeg": {
+            "min": 0,
+            "max": 80
+          }
+        },
+        "engagement": {
+          "effectiveRangeKm": 150,
+          "effectiveAltitudeKm": 30
+        }
+      },
+      "interceptor": {
+        "primaryMunitionCode": "MIS_HSS_U",
+        "reloadTimeMinPerMissile": 5,
+        "weaponSetupTimeSec": 3,
+        "weaponLaunchDelaySec": 0
+      },
+      "intraSystemDistanceConstraintsM": {
+        "radarToKkm": {
+          "min": 100,
+          "max": 3000
+        },
+        "kkmToFfs": {
+          "min": 100,
+          "max": 3000
+        },
+        "radarToFfs": {
+          "min": 100,
+          "max": 3000
+        },
+        "radarToAkr": {
+          "min": 100,
+          "max": 3000
+        },
+        "kkmToAkr": {
+          "min": 100,
+          "max": 3000
+        },
+        "akrToFfs": {
+          "min": 100,
+          "max": 3000
+        },
+        "ffsToFfs": {
+          "min": 100,
+          "max": 3000
+        }
+      },
+      "compatibleMunitions": [
+        "MIS_HSS_U",
+        "MIS_HSS_U_BLK1"
+      ]
+    },
+    {
+      "id": "ADS_HSS-F",
+      "code": "HSS-F",
+      "role": "Yuksek irtifa bolge fuze savunma",
+      "integration": {
+        "upperK2Managed": true,
+        "airPictureSharing": true,
+        "linkEnabled": true
+      },
+      "components": [
+        {
+          "type": "Radar",
+          "count": 1,
+          "HVA_value": 10
+        },
+        {
+          "type": "KKM",
+          "count": 1
+        },
+        {
+          "type": "AKR",
+          "count": 1
+        },
+        {
+          "type": "FFS",
+          "count": 2,
+          "minCount": 1,
+          "maxCount": 4,
+          "interceptorPerComponent": 6,
+          "totalReadyInterceptor": 12
+        }
+      ],
+      "technical": {
+        "radar": {
+          "trackRange": {
+            "minTrackRangeM": 100,
+            "referenceRcsM2": 1,
+            "rangeKm": 400,
+            "rcsScaling": "range scales with fourth-root of RCS"
+          },
+          "illumCapacity": 99,
+          "setupTimeIllTrackSec": 0,
+          "azimuthDeg": {
+            "min": 0,
+            "max": 360
+          },
+          "elevationDeg": {
+            "min": 0,
+            "max": 80
+          }
+        },
+        "engagement": {
+          "effectiveRangeKm": 50,
+          "effectiveAltitudeKm": 30
+        }
+      },
+      "interceptor": {
+        "primaryMunitionCode": "MIS_HSS_F",
+        "reloadTimeMinPerMissile": 5,
+        "weaponSetupTimeSec": 3,
+        "weaponLaunchDelaySec": 0
+      },
+      "intraSystemDistanceConstraintsM": {
+        "radarToKkm": {
+          "min": 100,
+          "max": 2000
+        },
+        "kkmToFfs": {
+          "min": 100,
+          "max": 2000
+        },
+        "radarToFfs": {
+          "min": 100,
+          "max": 2000
+        },
+        "radarToAkr": {
+          "min": 100,
+          "max": 2000
+        },
+        "kkmToAkr": {
+          "min": 100,
+          "max": 2000
+        },
+        "akrToFfs": {
+          "min": 100,
+          "max": 2000
+        },
+        "ffsToFfs": {
+          "min": 100,
+          "max": 2000
+        }
+      },
+      "compatibleMunitions": [
+        "MIS_HSS_F"
+      ]
+    }
+  ]
+}

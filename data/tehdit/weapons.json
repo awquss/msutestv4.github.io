@@ -1,0 +1,225 @@
+{
+  "meta": {
+    "version": "1.0",
+    "generatedFrom": "weapons.xlsx",
+    "generatedAt": "2026-02-06T17:40:37Z",
+    "notes": "Değerler açık kaynaktan toplanmıştır. @emreoztas",
+    "units": {
+      "speed": "m/s",
+      "turnRate": "deg/s",
+      "verticalRate": "m/s",
+      "rcs": "m^2",
+      "time": "s"
+    }
+  },
+  "weapons": [
+    {
+      "id": "WP01",
+      "entityType": "KinematicTarget",
+      "category": "ARM",
+      "model": "AGM-88 HARM",
+      "description": "Anti-radiation missile (SEAD)",
+      "defaultRCS": 0.05,
+      "defaultPSuccess": 0.9,
+      "kinematics": {
+        "speed": {
+          "min": 600,
+          "max": 800
+        },
+        "turnRate": {
+          "maxDegPerSec": 10
+        },
+        "vertical": {
+          "maxClimbRate": 15,
+          "maxDescentRate": 20
+        }
+      },
+      "release": {
+        "mode": "time",
+        "delaySeconds": 0
+      }
+    },
+    {
+      "id": "WP02",
+      "entityType": "KinematicTarget",
+      "category": "ARM",
+      "model": "Kh-31P",
+      "description": "Supersonic ARM",
+      "defaultRCS": 0.06,
+      "defaultPSuccess": 0.88,
+      "kinematics": {
+        "speed": {
+          "min": 700,
+          "max": 900
+        },
+        "turnRate": {
+          "maxDegPerSec": 8
+        },
+        "vertical": {
+          "maxClimbRate": 12,
+          "maxDescentRate": 18
+        }
+      },
+      "release": {
+        "mode": "time",
+        "delaySeconds": 0
+      }
+    },
+    {
+      "id": "WP03",
+      "entityType": "KinematicTarget",
+      "category": "CruiseMissile",
+      "model": "SOM",
+      "description": "Air-launched cruise missile",
+      "defaultRCS": 0.03,
+      "defaultPSuccess": 0.92,
+      "kinematics": {
+        "speed": {
+          "min": 220,
+          "max": 260
+        },
+        "turnRate": {
+          "maxDegPerSec": 5
+        },
+        "vertical": {
+          "maxClimbRate": 5,
+          "maxDescentRate": 5
+        }
+      },
+      "release": {
+        "mode": "time",
+        "delaySeconds": 0
+      }
+    },
+    {
+      "id": "WP04",
+      "entityType": "KinematicTarget",
+      "category": "CruiseMissile",
+      "model": "Tomahawk",
+      "description": "Long-range cruise missile",
+      "defaultRCS": 0.04,
+      "defaultPSuccess": 0.93,
+      "kinematics": {
+        "speed": {
+          "min": 240,
+          "max": 270
+        },
+        "turnRate": {
+          "maxDegPerSec": 4
+        },
+        "vertical": {
+          "maxClimbRate": 4,
+          "maxDescentRate": 4
+        }
+      },
+      "release": {
+        "mode": "time",
+        "delaySeconds": 0
+      }
+    },
+    {
+      "id": "WP05",
+      "entityType": "KinematicTarget",
+      "category": "GuidedMissile",
+      "model": "GBU-31 JDAM",
+      "description": "GPS-guided bomb",
+      "defaultRCS": 0.01,
+      "defaultPSuccess": 0.85,
+      "kinematics": {
+        "speed": {
+          "min": 150,
+          "max": 250
+        },
+        "turnRate": {
+          "maxDegPerSec": 2
+        },
+        "vertical": {
+          "maxClimbRate": 10,
+          "maxDescentRate": 20
+        }
+      },
+      "release": {
+        "mode": "time",
+        "delaySeconds": 1
+      }
+    },
+    {
+      "id": "WP06",
+      "entityType": "KinematicTarget",
+      "category": "GuidedMissile",
+      "model": "GBU-39 SDB",
+      "description": "Small diameter bomb",
+      "defaultRCS": 0.008,
+      "defaultPSuccess": 0.88,
+      "kinematics": {
+        "speed": {
+          "min": 180,
+          "max": 260
+        },
+        "turnRate": {
+          "maxDegPerSec": 3
+        },
+        "vertical": {
+          "maxClimbRate": 12,
+          "maxDescentRate": 22
+        }
+      },
+      "release": {
+        "mode": "time",
+        "delaySeconds": 1
+      }
+    },
+    {
+      "id": "WP07",
+      "entityType": "KinematicTarget",
+      "category": "SOW",
+      "model": "Harop",
+      "description": "Loitering munition",
+      "defaultRCS": 0.02,
+      "defaultPSuccess": 0.8,
+      "kinematics": {
+        "speed": {
+          "min": 50,
+          "max": 90
+        },
+        "turnRate": {
+          "maxDegPerSec": 6
+        },
+        "vertical": {
+          "maxClimbRate": 6,
+          "maxDescentRate": 6
+        }
+      },
+      "release": {
+        "mode": "time",
+        "delaySeconds": 0
+      }
+    },
+    {
+      "id": "WP08",
+      "entityType": "KinematicTarget",
+      "category": "SOW",
+      "model": "Switchblade-600",
+      "description": "Tactical loitering munition",
+      "defaultRCS": 0.015,
+      "defaultPSuccess": 0.78,
+      "kinematics": {
+        "speed": {
+          "min": 45,
+          "max": 80
+        },
+        "turnRate": {
+          "maxDegPerSec": 7
+        },
+        "vertical": {
+          "maxClimbRate": 5,
+          "maxDescentRate": 5
+        }
+      },
+      "release": {
+        "mode": "time",
+        "delaySeconds": 0
+      }
+    }
+  ]
+}

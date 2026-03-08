@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Senaryo Düzenleme</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600&display=swap");
+
+    :root {
+      --bg-1: #04100c;
+      --bg-2: #0d1e17;
+      --card: #0e1713;
+      --line: #254336;
+      --text: #d7f8df;
+      --muted: #9ec3af;
+      --accent: #2e9f72;
+      --warn: #ff8f53;
+      --control-height: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(188, 59, 59, 0.2) 0 18%, transparent 34%),
+        radial-gradient(circle at 86% 84%, rgba(46, 159, 114, 0.22) 0 16%, transparent 30%),
+        linear-gradient(145deg, var(--bg-1), var(--bg-2));
+      color: var(--text);
+      font-family: "Space Grotesk", sans-serif;
+    }
+
+    .shell {
+      width: min(760px, 100%);
+      border: 2px solid var(--line);
+      background: var(--card);
+      box-shadow: 10px 10px 0 #020504;
+      padding: clamp(20px, 5vw, 34px);
+    }
+
+    .logo-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    .logo-wrap img {
+      width: min(160px, 28vw);
+      height: auto;
+      display: block;
+    }
+
+    h1 {
+      font-family: "Fraunces", serif;
+      font-size: clamp(1.6rem, 3vw, 2.1rem);
+      margin-bottom: 18px;
+      line-height: 1.1;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .card {
+      border: 2px solid var(--line);
+      background: #14231c;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.86rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    input[type="file"],
+    button,
+    a {
+      width: 100%;
+      min-height: var(--control-height);
+      border: 2px solid var(--line);
+      background: #0f1a15;
+      color: var(--text);
+      font: inherit;
+      padding: 10px 12px;
+    }
+
+    input[type="file"] {
+      cursor: pointer;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      background: #163125;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .ghost-link {
+      display: inline-grid;
+      place-items: center;
+      text-decoration: none;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .status {
+      border: 1px solid var(--line);
+      background: #0f1a15;
+      color: var(--muted);
+      padding: 8px 10px;
+      min-height: 40px;
+      line-height: 1.4;
+    }
+
+    .status.warn {
+      border-color: #845638;
+      color: #ffd1b5;
+      background: #21160f;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="logo-wrap">
+      <img src="../data/MilliSavunmaUniversitesiLogo.png" alt="MSÜ Logo">
+    </div>
+    <h1>MSÜ Senaryo Planlama WEB Arayüzü</h1>
+
+    <section class="card">
+      <div>
+        <label for="scenarioFile">Senaryo JSON Dosyası</label>
+        <input id="scenarioFile" type="file" accept=".json,application/json">
+      </div>
+      <div class="hint">
+        Mevcut senaryo JSON dosyasını seçin. Dosya yüklendikten sonra aynı planlama sekmeleri açılır ve kayıtlar düzenlenebilir.
+      </div>
+      <div id="status" class="status">Dosya seçilmedi.</div>
+      <div class="actions">
+        <button id="openBtn" type="button" disabled>Senaryoyu Aç</button>
+        <a class="ghost-link" href="../index.html">Geri Dön</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const EDIT_SCENARIO_IMPORT_KEY = "msu:edit_scenario_import:v1";
+    const EDIT_THREAT_IMPORT_KEY = "msu:edit_threat_import:v1";
+    const fileInput = document.getElementById("scenarioFile");
+    const openBtn = document.getElementById("openBtn");
+    const statusEl = document.getElementById("status");
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files && fileInput.files[0];
+      openBtn.disabled = !file;
+      statusEl.textContent = file ? `Secilen dosya: ${file.name}` : "Dosya seçilmedi.";
+      statusEl.className = "status";
+    });
+
+    openBtn.addEventListener("click", async () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) {
+        return;
+      }
+
+      try {
+        const raw = await file.text();
+        const parsed = JSON.parse(raw);
+        const hasAssets = Array.isArray(parsed && parsed.protectedAssets);
+        const hasPlans = Array.isArray(parsed && parsed.deploymentPlans);
+        if (!hasAssets || !hasPlans) {
+          throw new Error("Secilen dosya gecerli bir senaryo JSON yapisi icermiyor.");
+        }
+
+        window.sessionStorage.setItem(EDIT_SCENARIO_IMPORT_KEY, JSON.stringify(parsed));
+        if (parsed.threatScenario && typeof parsed.threatScenario === "object") {
+          window.sessionStorage.setItem(EDIT_THREAT_IMPORT_KEY, JSON.stringify(parsed.threatScenario));
+        } else {
+          window.sessionStorage.removeItem(EDIT_THREAT_IMPORT_KEY);
+        }
+        window.location.href = "./senaryo.html?editMode=1&appVersion=20260326";
+      } catch (error) {
+        statusEl.textContent = error && error.message ? error.message : "JSON dosyasi okunamadi.";
+        statusEl.className = "status warn";
+      }
+    });
+  </script>
+</body>
+</html>

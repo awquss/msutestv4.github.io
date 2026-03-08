@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MSU Senaryo Planlama Kullanici Kilavuzu</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.45;
+      color: #111;
+      margin: 40px;
+    }
+
+    h1, h2 {
+      color: #0b3d2e;
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-top: 28px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #cfd8d3;
+      padding-bottom: 4px;
+    }
+
+    p {
+      margin: 6px 0 10px;
+    }
+
+    ul {
+      margin: 6px 0 14px 18px;
+      padding: 0;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+
+    .note {
+      background: #f3f7f5;
+      border-left: 4px solid #2f7d60;
+      padding: 10px 12px;
+      margin: 10px 0 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>MSU Senaryo Planlama Web Arayuzu Kullanici Kilavuzu</h1>
+  <p>Bu kilavuz, tek senaryo mantigi ile calisan planlama ekraninin temel kullanim adimlarini checklist formatinda ozetler.</p>
+
+  <h2>1. Baslangic</h2>
+  <ul>
+    <li>[ ] Ana sayfayi acin.</li>
+    <li>[ ] Yeni bir calisma baslatacaksaniz <strong>Yeni Senaryo Olusturma</strong> secenegine basin.</li>
+    <li>[ ] Daha once indirilmis bir senaryoyu acacaksaniz <strong>Senaryo Duzenleme</strong> secenegine basin.</li>
+    <li>[ ] Senaryo Duzenleme modunda gecerli bir JSON dosyasi secin ve <strong>Senaryoyu Ac</strong> butonuna basin.</li>
+  </ul>
+
+  <h2>2. Korunacak Varliklar</h2>
+  <ul>
+    <li>[ ] <strong>Korunulacak Varlik ID</strong> bilgisini girin.</li>
+    <li>[ ] <strong>HVA Degeri</strong> secin.</li>
+    <li>[ ] <strong>Nokta Savunmasi</strong> veya <strong>Bolge Savunmasi</strong> tipini secin.</li>
+    <li>[ ] <strong>Yeni Korunacak Varlik Ekle</strong> butonuna basin.</li>
+    <li>[ ] Haritada nokta savunmasi icin 1 nokta, bolge savunmasi icin en az 3 nokta secin.</li>
+    <li>[ ] Gerekirse koordinat tablosundan X ve Y degerlerini manuel duzeltin.</li>
+    <li>[ ] <strong>Mevcut Taslagi Kaydet</strong> ile kaydi tamamlayin.</li>
+  </ul>
+
+  <h2>3. EIRS Konuslandirma</h2>
+  <ul>
+    <li>[ ] <strong>EIRS ID</strong> bilgisini girin.</li>
+    <li>[ ] <strong>HVA Degeri</strong> secin.</li>
+    <li>[ ] <strong>Yeni EIRS Ekle</strong> butonuna basin.</li>
+    <li>[ ] Haritada 1 nokta secin.</li>
+    <li>[ ] Gerekirse koordinat tablosundan X ve Y degerlerini manuel duzeltin.</li>
+    <li>[ ] <strong>Mevcut Taslagi Kaydet</strong> ile kaydi tamamlayin.</li>
+  </ul>
+
+  <h2>4. HSS Konuslandirma</h2>
+  <ul>
+    <li>[ ] <strong>Muhtemel Tehdit Istikameti</strong> secin.</li>
+    <li>[ ] <strong>Korunacak Varlik</strong> secin.</li>
+    <li>[ ] Her HSS icin gerekli ise <strong>Tk/Bt/Fl Adedi</strong> degerini girin.</li>
+    <li>[ ] Her HSS icin gerekli ise <strong>FFS Adedi</strong> degerini secin.</li>
+    <li>[ ] Ilgili HSS satirindaki <strong>Ekle</strong> butonuna basin.</li>
+    <li>[ ] Acilan pencerede toplam FFS satirlarini kontrol edin.</li>
+    <li>[ ] Her FFS icin <strong>Muhimmat Tipi</strong> secin.</li>
+    <li>[ ] Her FFS icin <strong>Muhimmat Adedi</strong> secin.</li>
+    <li>[ ] <strong>Kaydet</strong> ile HSS atamasini tamamlayin.</li>
+    <li>[ ] Harita katmanlarindan gerekiyorsa <strong>Radar Kaplamasi</strong>, <strong>WEZ</strong>, <strong>Min</strong> ve <strong>Max</strong> katmanlarini acin.</li>
+    <li>[ ] Birim markerina tiklayarak bilesen yerlestirme ekranini acin.</li>
+    <li>[ ] Gerekirse KKM, AKR, EO ve FFS konumlarini kisitlar icinde surukleyerek duzenleyin.</li>
+    <li>[ ] <strong>Bilesen Yerlesimini Kaydet</strong> ile degisikligi tamamlayin.</li>
+  </ul>
+
+  <div class="note">
+    Not: WEZ gosterimi artik sistem bazli sabit degerden degil, her FFS uzerine yuklenmis muhimmatin kendi angajman zarfindan uretilir.
+  </div>
+
+  <h2>5. Tehdit Planlama - Platform</h2>
+  <ul>
+    <li>[ ] <strong>Platform</strong> alt sekmesini acin.</li>
+    <li>[ ] Platform modelini secin.</li>
+    <li>[ ] Platform hedefini secin veya manuel koordinat kullanin.</li>
+    <li>[ ] Manuel hedef secildi ise haritadan hedef noktasi secin veya X-Y alanlarini doldurun.</li>
+    <li>[ ] Haritada platform rotasini en az 2 nokta ile tanimlayin.</li>
+    <li>[ ] Gerekirse rota tablosundan X, Y, irtifa ve surat bilgilerini manuel duzeltin.</li>
+    <li>[ ] Platform muhimmat tasiyacaksa <strong>Payload Ekle</strong> ile payload tanimlamaya basin.</li>
+    <li>[ ] Payload sectikten sonra hedef secin.</li>
+    <li>[ ] Gerekirse release noktasini haritadan secin.</li>
+    <li>[ ] Gerekirse payload hedefini manuel koordinat ile tanimlayin.</li>
+    <li>[ ] <strong>Platform Ekle</strong> ile tehdidi senaryoya ekleyin.</li>
+  </ul>
+
+  <h2>6. Tehdit Planlama - Balistik</h2>
+  <ul>
+    <li>[ ] <strong>Balistik</strong> alt sekmesini acin.</li>
+    <li>[ ] Balistik modeli secin.</li>
+    <li>[ ] Launch noktasini haritadan secin.</li>
+    <li>[ ] Impact hedefini secin veya manuel koordinat kullanin.</li>
+    <li>[ ] Manuel impact secildi ise haritadan impact noktasi secin.</li>
+    <li>[ ] Launch Time ve Impact Time bilgilerini kontrol edin.</li>
+    <li>[ ] <strong>Balistik Tehdidi Senaryoya Ekle</strong> ile kaydi tamamlayin.</li>
+  </ul>
+
+  <h2>7. JSON Kontrol ve Indirme</h2>
+  <ul>
+    <li>[ ] <strong>JSON</strong> sekmesini acin.</li>
+    <li>[ ] Ozet alaninda korunacak varlik, EIRS, HSS ve tehdit sayilarini kontrol edin.</li>
+    <li>[ ] JSON icerigini onizleme alaninda dogrulayin.</li>
+    <li>[ ] Gerekirse senaryo adini guncelleyin.</li>
+    <li>[ ] <strong>JSON Indir</strong> ile tek senaryo dosyasini alin.</li>
+  </ul>
+
+  <h2>8. Senaryo Duzenleme</h2>
+  <ul>
+    <li>[ ] Daha once indirilen senaryo JSON dosyasini secin.</li>
+    <li>[ ] <strong>Senaryoyu Ac</strong> ile mevcut senaryoyu yukleyin.</li>
+    <li>[ ] Korunacak varliklar, EIRS, HSS ve tehdit kayitlarini sekmelerde kontrol edin.</li>
+    <li>[ ] Gerekli ekleme, silme ve duzenleme islemlerini yapin.</li>
+    <li>[ ] Guncel senaryoyu tekrar JSON olarak indirin.</li>
+  </ul>
+
+  <h2>9. Hizli Kontrol Listesi</h2>
+  <ul>
+    <li>[ ] En az 1 korunacak varlik tanimli.</li>
+    <li>[ ] Gerekli ise EIRS kayitlari tanimli.</li>
+    <li>[ ] Her korunacak varlik icin gerekli HSS atamalari yapildi.</li>
+    <li>[ ] FFS bazli muhimmat tipleri ve adetleri kontrol edildi.</li>
+    <li>[ ] Tehdit rotalari ve/veya balistik tehditler eklendi.</li>
+    <li>[ ] JSON ozeti beklenen sayilarla uyumlu.</li>
+    <li>[ ] Son cikti dosyasi indirildi.</li>
+  </ul>
+</body>
+</html>

@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MSÜ Senaryo Planlama Web Arayüzü</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600&display=swap");
+
+    :root {
+      --bg: #060f0c;
+      --bg-2: #0b1712;
+      --card: #12201a;
+      --card-2: #0f1a15;
+      --line: #2d5443;
+      --line-soft: #223d31;
+      --text: #def6e7;
+      --muted: #9ec3af;
+      --accent: #2ea375;
+      --warn: #ff8f53;
+      --primary: #46bf8f;
+      --control-height: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 20px;
+      color: var(--text);
+      font-family: "Space Grotesk", sans-serif;
+      background:
+        radial-gradient(circle at 8% 10%, rgba(70, 191, 143, 0.15) 0 18%, transparent 36%),
+        radial-gradient(circle at 92% 84%, rgba(53, 104, 81, 0.25) 0 16%, transparent 30%),
+        linear-gradient(140deg, var(--bg), var(--bg-2));
+    }
+
+    .shell {
+      width: min(1460px, 100%);
+      margin: 0 auto;
+      border: 2px solid var(--line);
+      background: var(--card);
+      box-shadow: 10px 10px 0 #020504;
+      overflow: hidden;
+    }
+
+    .head {
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--line);
+      background: linear-gradient(90deg, #14231c, #0d1713);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .head h1 {
+      font-family: "Fraunces", serif;
+      font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+    }
+
+    .head p {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .head a {
+      text-decoration: none;
+      color: var(--text);
+      border: 2px solid var(--line);
+      padding: 8px 12px;
+      font-weight: 700;
+      background: #0f1a15;
+      white-space: nowrap;
+    }
+
+    .tab-nav {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      border-bottom: 2px solid var(--line);
+      background: #0f1a15;
+    }
+
+    .tab-btn {
+      border: none;
+      border-right: 2px solid var(--line);
+      background: #0f1a15;
+      color: var(--muted);
+      font: inherit;
+      font-weight: 700;
+      padding: 12px 14px;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .tab-btn:last-child {
+      border-right: none;
+    }
+
+    .tab-btn.active {
+      background: #13231c;
+      color: var(--text);
+    }
+
+    .tab-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    .embedded-threat-shell {
+      display: grid;
+      gap: 12px;
+      min-height: calc(100vh - 180px);
+      min-width: 0;
+    }
+
+    .embedded-threat-frame {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      min-height: calc(100vh - 280px);
+      border: 2px solid var(--line-soft);
+      background: #0b1410;
+    }
+
+    .grid,
+    .deploy-grid {
+      display: grid;
+      grid-template-columns: 0.56fr 1.44fr;
+      min-height: calc(100vh - 160px);
+    }
+
+    .panel {
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .panel + .panel {
+      border-left: 2px solid var(--line);
+      background: var(--card-2);
+    }
+
+    .card {
+      border: 2px solid var(--line-soft);
+      background: #13231c;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 0.95rem;
+      font-family: "Fraunces", serif;
+      margin-bottom: 10px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.35;
+      margin-top: 4px;
+      overflow-wrap: anywhere;
+    }
+
+    .status {
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      background: #0f1a15;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .status.warn {
+      border-color: #845638;
+      color: #ffd1b5;
+      background: #21160f;
+    }
+
+    .guide-list {
+      list-style: none;
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .guide-item {
+      font-weight: 700;
+      color: #ff8d8d;
+    }
+
+    .guide-item.done {
+      color: #7fe2a7;
+    }
+
+    .guide-note {
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .guide-note.warn {
+      color: #ffd1b5;
+    }
+
+    .fields {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr;
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    button,
+    textarea {
+      width: 100%;
+      border: 2px solid var(--line);
+      background: #0c1511;
+      color: var(--text);
+      padding: 9px 10px;
+      font: inherit;
+      line-height: 1.2;
+    }
+
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    button:not(.tab-btn):not(.table-actions):not(.ghost[title]),
+    .saved-actions button,
+    .deployment-actions button {
+      min-height: var(--control-height);
+    }
+
+    textarea {
+      min-height: 320px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .radio-group {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .layer-grid {
+      display: grid;
+      gap: 6px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .radio-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      padding: 8px;
+      background: #0f1a15;
+      min-height: var(--control-height);
+    }
+
+    #regionName,
+    #eirsName,
+    .system-count-input,
+    .system-ffs-select {
+      height: 22px;
+      min-height: 22px;
+      padding: 2px 8px;
+    }
+
+    .radio-group .radio-item {
+      min-height: 22px;
+      height: 22px;
+      padding: 2px 8px;
+    }
+
+    .radio-item input {
+      width: auto;
+      margin: 0;
+      padding: 0;
+      border: none;
+      accent-color: var(--accent);
+    }
+
+    .layer-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      padding: 6px 8px;
+      background: #0f1a15;
+      min-height: 34px;
+      font-size: 0.78rem;
+    }
+
+    .layer-item input {
+      width: 13px;
+      height: 13px;
+      margin: 0;
+      padding: 0;
+      border: none;
+      accent-color: var(--accent);
+    }
+
+    .json-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .json-actions .field {
+      flex: 1 1 280px;
+      min-width: 220px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .map-tool-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    button {
+      cursor: pointer;
+      transition: transform 120ms ease;
+      font-weight: 700;
+    }
+
+    button:hover {
+      transform: translate(-1px, -1px);
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: #04110a;
+      border-color: #74d6af;
+    }
+
+    button.warn {
+      border-color: #845638;
+      color: #ffd1b5;
+      background: #21160f;
+    }
+
+    button.ghost {
+      background: #0e1814;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .saved-list,
+    .deployment-list {
+      display: grid;
+      gap: 8px;
+      max-height: 320px;
+      overflow: auto;
+    }
+
+    .saved-item,
+    .deployment-item {
+      border: 1px solid var(--line);
+      padding: 8px;
+      background: #0e1814;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .saved-item strong,
+    .deployment-item strong {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 0.9rem;
+    }
+
+    .saved-item small,
+    .deployment-item small {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .saved-actions,
+    .deployment-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .saved-actions button,
+    .deployment-actions button {
+      width: auto;
+      padding: 8px 10px;
+      font-size: 0.78rem;
+      border-width: 1px;
+    }
+
+    .map-wrap {
+      border: 2px solid var(--line-soft);
+      background: #0d1713;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dpad {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, 34px);
+      gap: 4px;
+      z-index: 2;
+    }
+
+    .dpad button {
+      width: 34px;
+      height: 34px;
+      min-height: 34px;
+      padding: 0;
+      border-width: 1px;
+      background: rgba(8, 15, 12, 0.92);
+    }
+
+    .dpad .empty {
+      padding: 0;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: crosshair;
+      background:
+        linear-gradient(#0f1a15, #0d1713),
+        repeating-linear-gradient(0deg, rgba(67, 114, 91, 0.2) 0 1px, transparent 1px 36px),
+        repeating-linear-gradient(90deg, rgba(67, 114, 91, 0.2) 0 1px, transparent 1px 36px);
+      background-blend-mode: normal, screen, screen;
+    }
+
+    .shared-map-host {
+      min-height: 0;
+    }
+
+    .shared-map-card {
+      margin-bottom: 0;
+    }
+
+    .shared-map-card[hidden] {
+      display: none !important;
+    }
+
+    .shared-threat-actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #sharedLayerControls[hidden],
+    #sharedMapHint[hidden],
+    #sharedMapInfo[hidden],
+    #sharedThreatActions[hidden] {
+      display: none !important;
+    }
+
+    table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line-soft);
+      padding: 6px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    thead th {
+      background: #12231b;
+    }
+
+    .system-detail-row td {
+      padding: 4px 6px 6px;
+      border-top: none;
+      background: #101b15;
+    }
+
+    .system-detail-box {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      line-height: 1.2;
+      font-size: 0.78rem;
+    }
+
+    .deployment-inline-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .deployment-assignment-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .deployment-assignment-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      border: 1px solid var(--line-soft);
+      background: #0f1814;
+      padding: 6px 8px;
+    }
+
+    .deployment-assignment-item strong {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--text);
+    }
+
+    .deployment-assignment-item small {
+      color: var(--muted);
+    }
+
+    input.system-count-input,
+    select.system-ffs-select {
+      width: 104px;
+      height: 22px !important;
+      min-height: 22px !important;
+      max-height: 22px !important;
+      padding: 0 8px !important;
+      line-height: 1 !important;
+      max-width: 100%;
+      display: block;
+    }
+
+    td input {
+      padding: 9px 10px;
+      border-width: 1px;
+    }
+
+    .table-actions {
+      width: auto;
+      border-width: 1px;
+      min-height: var(--control-height);
+      padding: 8px 10px;
+      font-size: 0.76rem;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 0.83rem;
+      padding: 6px 0;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 5, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 30;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(980px, 100%);
+      border: 2px solid var(--line);
+      background: #12201a;
+      box-shadow: 10px 10px 0 #020504;
+      padding: 12px;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .modal-head h3 {
+      font-family: "Fraunces", serif;
+      font-size: 1rem;
+    }
+
+    .modal-canvas-wrap {
+      position: relative;
+      border: 2px solid var(--line-soft);
+      background: #0d1713;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .modal-tool-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .modal-canvas-panel {
+      display: grid;
+      gap: 8px;
+    }
+
+    .blind-editor {
+      border: 2px solid var(--line-soft);
+      background: #0f1a15;
+      padding: 10px;
+      min-height: 520px;
+    }
+
+    .blind-editor h4 {
+      font-family: "Fraunces", serif;
+      font-size: 0.92rem;
+      margin-bottom: 8px;
+    }
+
+    .blind-editor .controls {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .blind-sector-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .blind-sector-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 80px;
+      gap: 6px;
+      align-items: end;
+      border: 1px solid var(--line);
+      background: #12201a;
+      padding: 8px;
+    }
+
+    .blind-sector-row .mini-label {
+      font-size: 0.74rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .blind-empty {
+      border: 1px dashed var(--line);
+      color: var(--muted);
+      background: #12201a;
+      padding: 12px;
+      font-size: 0.84rem;
+      line-height: 1.35;
+    }
+
+    #componentEditorCanvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: crosshair;
+    }
+
+    @media (max-width: 1080px) {
+      .grid,
+      .deploy-grid,
+      .modal-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel + .panel {
+        border-left: none;
+        border-top: 2px solid var(--line);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .row,
+      .radio-group,
+      .layer-grid,
+      .map-tool-row,
+      .tab-nav,
+      .blind-sector-row {
+        grid-template-columns: 1fr;
+      }
+
+      .head {
+        align-items: flex-start;
+      }
+
+      .tab-btn {
+        border-right: none;
+        border-bottom: 2px solid var(--line);
+      }
+
+      .tab-btn:last-child {
+        border-bottom: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="head">
+      <div>
+        <h1>MSÜ Senaryo Planlama Web Arayüzü</h1>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <a href="../index.html">Ana Sayfaya Dön</a>
+      </div>
+    </header>
+
+    <nav class="tab-nav">
+      <button class="tab-btn active" type="button" data-tab-btn="areas">Korunacak Varlıklar</button>
+      <button class="tab-btn" id="tabEirsBtn" type="button" data-tab-btn="eirs">EİRS Konuşlandırma</button>
+      <button class="tab-btn" id="tabDeploymentBtn" type="button" data-tab-btn="deployment">HSS Konuşlandırma</button>
+      <button class="tab-btn" id="tabThreatBtn" type="button" data-tab-btn="threat">Tehdit Planlama</button>
+      <button class="tab-btn" id="tabJsonBtn" type="button" data-tab-btn="json">JSON</button>
+    </nav>
+
+    <section class="tab-pane active" data-tab-pane="areas">
+      <div class="grid">
+        <section class="panel">
+          <div class="card">
+            <h2 hidden>Açıklama</h2>
+            <div id="status" class="status" hidden aria-hidden="true"></div>
+
+            <div class="fields">
+              <div>
+                <label for="regionName">Korunulacak Varlık ID</label>
+                <input id="regionName" type="text" placeholder="Örn: Hava Üssü - 1">
+              </div>
+
+              <div>
+                <label for="hvaValue">HVA Değeri</label>
+                <select id="hvaValue">
+                  <option value="" selected>Seçiniz</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                </select>
+              </div>
+
+              <div>
+                <label>Savunma Tipi</label>
+                <div class="radio-group">
+                  <label class="radio-item">
+                    <input type="radio" name="defenseType" value="point" checked>
+                    <span>Nokta Savunması</span>
+                  </label>
+                  <label class="radio-item">
+                    <input type="radio" name="defenseType" value="area">
+                    <span>Bölge Savunması</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <button id="startRegionBtn" class="primary" type="button">Yeni Korunacak Varlık Ekle</button>
+
+            <div class="row">
+              <button id="saveRegionBtn" type="button" disabled>Mevcut Taslağı Kaydet</button>
+              <button id="cancelDraftBtn" class="warn" type="button" disabled>Taslağı İptal Et</button>
+            </div>
+
+            <p class="hint">Nokta savunmasında haritadan 1 nokta, bölge savunmasında en az 3 nokta seçin. Koordinatları alttaki tablodan manuel düzeltebilirsiniz.</p>
+          </div>
+
+          <div class="card">
+            <h2>Tanımlı Korunacak Varlıklar</h2>
+            <div id="savedList" class="saved-list"></div>
+            <div id="savedEmpty" class="empty">Henüz kayıtlı korunacak varlık yok.</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div id="sharedMapHostAreas" class="shared-map-host"></div>
+
+          <div class="card">
+            <h2>Koordinat</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>X</th>
+                  <th>Y</th>
+                  <th>İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="coordTableBody"></tbody>
+            </table>
+            <div id="coordEmpty" class="empty">Aktif taslak yok.</div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="tab-pane" data-tab-pane="eirs">
+      <div class="grid">
+        <section class="panel">
+          <div class="card">
+            <div id="eirsStatus" class="status" hidden aria-hidden="true">Önce yeni bir EİRS ekleyin.</div>
+
+            <div class="fields">
+              <div>
+                <label for="eirsName">EİRS ID</label>
+                <input id="eirsName" type="text" placeholder="Örn: EIRS-01">
+              </div>
+
+              <div>
+                <label for="eirsHvaValue">HVA Değeri</label>
+                <select id="eirsHvaValue">
+                  <option value="" selected>Seçiniz</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                </select>
+              </div>
+            </div>
+
+            <button id="startEirsBtn" class="primary" type="button">Yeni EİRS Ekle</button>
+
+            <div class="row">
+              <button id="saveEirsBtn" type="button" disabled>Mevcut Taslağı Kaydet</button>
+              <button id="cancelEirsDraftBtn" class="warn" type="button" disabled>Taslağı İptal Et</button>
+            </div>
+
+            <p class="hint">Yeni EİRS ekledikten sonra haritada 1 nokta seçin. Bu radar HSS-U/HSS-F radar kapsaması ile aynı hava resmi katkısını sağlar.</p>
+          </div>
+
+          <div class="card">
+            <h2>Tanımlı EİRS Radarları</h2>
+            <div id="eirsSavedList" class="saved-list"></div>
+            <div id="eirsSavedEmpty" class="empty">Henüz kayıtlı EİRS yok.</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div id="sharedMapHostEirs" class="shared-map-host"></div>
+
+          <div class="card">
+            <h2>Koordinat</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>X</th>
+                  <th>Y</th>
+                  <th>İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="eirsCoordTableBody"></tbody>
+            </table>
+            <div id="eirsCoordEmpty" class="empty">Aktif EİRS taslağı yok.</div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="tab-pane" data-tab-pane="deployment">
+      <div class="deploy-grid">
+        <section class="panel">
+          <div class="card">
+            <div id="deploymentStatus" class="status" hidden aria-hidden="true"></div>
+
+            <div class="fields">
+              <div>
+                <label for="threatDirectionSelect">Muhtemel Tehdit İstikameti (Senaryo)</label>
+                <select id="threatDirectionSelect">
+                  <option value="none" selected>Yok</option>
+                  <option value="north">Kuzey</option>
+                  <option value="east">Doğu</option>
+                  <option value="south">Güney</option>
+                  <option value="west">Batı</option>
+                </select>
+              </div>
+              <div>
+                <label for="defendedRegionSelect">Korunacak Varlık</label>
+                <select id="defendedRegionSelect"></select>
+              </div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>HSS</th>
+                  <th>Tk/Bt/Fl Adedi</th>
+                  <th>FFS Adedi</th>
+                  <th>İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="systemPickBody"></tbody>
+            </table>
+            <div class="hint">Ünite ve FFS değerlerini ana ekranda seçin. Ekle sonrası popup içinde her FFS için mühimmat tipi ve yüklenecek adet tanımlanır.</div>
+
+          </div>
+        </section>
+
+        <section class="panel">
+          <div id="sharedMapHostDeployment" class="shared-map-host"></div>
+
+          <div class="card">
+            <h2>Kayıtlı Konuşlandırma Planları</h2>
+            <div id="deploymentList" class="deployment-list"></div>
+            <div id="deploymentEmpty" class="empty">Henüz konuşlandırma planı yok.</div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="tab-pane" data-tab-pane="threat">
+      <div class="deploy-grid">
+        <section class="panel">
+          <div class="card embedded-threat-shell">
+            <iframe
+              id="threatPlanningFrame"
+              class="embedded-threat-frame"
+              src="./tehdit-planlama.html?embedded=1"
+              title="Tehdit Planlama"
+              loading="lazy"></iframe>
+          </div>
+        </section>
+        <section class="panel">
+          <div id="sharedMapHostThreat" class="shared-map-host"></div>
+          <div id="sharedThreatPointCard" class="card" hidden>
+            <h2>Platform Noktaları</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Tür</th>
+                  <th>X (m)</th>
+                  <th>Y (m)</th>
+                  <th>İrtifa (m)</th>
+                  <th>Sürat (m/s)</th>
+                </tr>
+              </thead>
+              <tbody id="sharedPointTableBody"></tbody>
+            </table>
+            <div class="hint">Kontroller: sürat limiti + tırmanma/alçalma oranı + dönüş oranı.</div>
+          </div>
+          <div id="sharedThreatPayloadCard" class="card" hidden>
+            <h2>Payload Tanımlama</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Silah</th>
+                  <th>Release</th>
+                  <th>Hedef</th>
+                  <th>Release Time (s)</th>
+                  <th>Payload ToT (s)</th>
+                  <th>Release Offset (s)</th>
+                  <th>Düzenle</th>
+                  <th>İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="sharedPayloadTableBody"></tbody>
+            </table>
+          </div>
+          <div id="sharedThreatBallisticCard" class="card" hidden>
+            <h2>Balistik Hedef Listesi</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Model</th>
+                  <th>Launch</th>
+                  <th>Impact</th>
+                  <th>Launch Time (s)</th>
+                  <th>Impact Time (s)</th>
+                  <th>İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="sharedBallisticEntityTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="tab-pane" data-tab-pane="json">
+      <div class="grid" style="grid-template-columns: 1fr;">
+        <section class="panel">
+          <div class="card">
+            <h2>JSON Çıktısı</h2>
+            <div id="jsonStatus" class="status">Önce en az bir korunacak varlık veya EİRS kaydı ve konuşlandırma planı oluşturun.</div>
+            <div class="json-actions">
+              <div class="field">
+                <label for="defenseScenarioName">Senaryo İsmi</label>
+                <input id="defenseScenarioName" type="text" value="Birlesik Senaryo">
+              </div>
+              <div class="field" style="align-self: end;">
+                <button id="downloadDefenseJsonBtn" class="primary" type="button">JSON İndir</button>
+              </div>
+            </div>
+            <textarea id="defenseJsonOutput" spellcheck="false" readonly></textarea>
+          </div>
+        </section>
+      </div>
+    </section>
+  </div>
+
+  <div id="sharedMapStorage" hidden aria-hidden="true"></div>
+  <div id="sharedMapCard" class="card shared-map-card" hidden>
+    <h2 id="sharedMapTitle">Harekât Haritası</h2>
+    <p id="sharedMapHint" class="hint" hidden></p>
+
+    <div id="sharedLayerControls" class="fields" hidden>
+      <div>
+        <label>Harita Katmanları</label>
+        <div class="layer-grid">
+          <label class="layer-item">
+            <input id="layerRadarChk" type="checkbox" checked>
+            <span>Radar Kaplaması</span>
+          </label>
+          <label class="layer-item">
+            <input id="layerWezChk" type="checkbox">
+            <span>Angajman Zarfı (WEZ)</span>
+          </label>
+          <label class="layer-item">
+            <input id="layerMinRangeChk" type="checkbox">
+            <span>Min Konuşlanma Kriteri</span>
+          </label>
+          <label class="layer-item">
+            <input id="layerMaxRangeChk" type="checkbox">
+            <span>Max Konuşlanma Kriteri</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-wrap" style="margin-top: 8px;">
+      <canvas id="sharedMapCanvas" width="1800" height="980" aria-label="Harekât Haritası"></canvas>
+      <div class="dpad" aria-label="Harita Pan Kontrolleri">
+        <span class="empty"></span>
+        <button id="panUpBtn" class="ghost" type="button" title="Yukarı">▲</button>
+        <span class="empty"></span>
+        <button id="panLeftBtn" class="ghost" type="button" title="Sol">◀</button>
+        <button id="panResetBtn" class="ghost" type="button" title="Sıfırla">◎</button>
+        <button id="panRightBtn" class="ghost" type="button" title="Sağ">▶</button>
+        <span class="empty"></span>
+        <button id="panDownBtn" class="ghost" type="button" title="Aşağı">▼</button>
+        <span class="empty"></span>
+      </div>
+    </div>
+
+    <div id="sharedThreatActions" class="map-tool-row shared-threat-actions" hidden>
+      <button id="sharedUndoBtn" class="ghost" type="button">Son Noktayı Sil</button>
+      <button id="sharedClearBtn" class="ghost" type="button">Rotayı Temizle</button>
+    </div>
+
+    <div class="map-tool-row">
+      <button id="zoomOutBtn" class="ghost" type="button">Zoom -</button>
+      <button id="zoomInBtn" class="ghost" type="button">Zoom +</button>
+      <button id="zoomResetBtn" class="ghost" type="button">Zoom 100%</button>
+    </div>
+
+    <div id="sharedMapInfo" class="hint" style="margin-top: 8px;" hidden></div>
+  </div>
+
+  <div id="componentEditorModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="componentEditorTitle">HSS Bileşen Düzenleme</h3>
+        <div class="row" style="margin-top: 0; width: auto; grid-template-columns: repeat(2, minmax(120px, auto)); gap: 6px;">
+          <button id="componentEditorResetBtn" class="ghost" type="button">Varsayılan</button>
+          <button id="componentEditorCloseBtn" class="warn" type="button">Kapat</button>
+        </div>
+      </div>
+      <div id="componentEditorInfo" class="status">Markerları sürükleyerek düzenleyin.</div>
+      <div class="modal-grid">
+        <div class="modal-canvas-panel">
+          <div class="modal-canvas-wrap">
+            <canvas id="componentEditorCanvas" width="920" height="520" aria-label="HSS Bileşen Düzenleme"></canvas>
+            <div class="dpad" aria-label="Bileşen Haritası Pan Kontrolleri">
+              <span class="empty"></span>
+              <button id="componentPanUpBtn" class="ghost" type="button" title="Yukarı">▲</button>
+              <span class="empty"></span>
+              <button id="componentPanLeftBtn" class="ghost" type="button" title="Sol">◀</button>
+              <button id="componentPanResetBtn" class="ghost" type="button" title="Sıfırla">◎</button>
+              <button id="componentPanRightBtn" class="ghost" type="button" title="Sağ">▶</button>
+              <span class="empty"></span>
+              <button id="componentPanDownBtn" class="ghost" type="button" title="Aşağı">▼</button>
+              <span class="empty"></span>
+            </div>
+          </div>
+          <div class="modal-tool-row">
+            <button id="componentZoomOutBtn" class="ghost" type="button">Zoom -</button>
+            <button id="componentZoomInBtn" class="ghost" type="button">Zoom +</button>
+            <button id="componentZoomResetBtn" class="ghost" type="button">Zoom 100%</button>
+          </div>
+        </div>
+        <aside class="blind-editor">
+          <h4>Radar Koordinatı</h4>
+          <div class="controls">
+            <div class="row" style="margin-top: 0;">
+              <div>
+                <label for="componentRadarX">Radar X</label>
+                <input id="componentRadarX" type="number" step="1">
+              </div>
+              <div>
+                <label for="componentRadarY">Radar Y</label>
+                <input id="componentRadarY" type="number" step="1">
+              </div>
+            </div>
+          </div>
+          <h4>Kör Sektör Düzenleme</h4>
+          <div class="controls">
+            <div>
+              <label for="blindSectorTargetSelect">Bileşen</label>
+              <select id="blindSectorTargetSelect"></select>
+            </div>
+            <button id="blindSectorAddBtn" class="ghost" type="button">Kör Sektör Ekle</button>
+          </div>
+          <div id="blindSectorList" class="blind-sector-list"></div>
+          <p class="hint">0° kuzey, saat yönü pozitif. 350°-10° gerekiyorsa 350-360 ve 0-10 olarak iki satır girin.</p>
+        </aside>
+      </div>
+      <div class="row" style="margin-top: 0;">
+        <button id="componentEditorSaveBtn" class="primary" type="button">Bileşen Yerleşimini Kaydet</button>
+        <button id="componentEditorCancelBtn" class="ghost" type="button">İptal</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="deploymentAssignmentModal" class="modal" aria-hidden="true">
+    <div class="modal-card" style="width: min(680px, 100%);">
+      <div class="modal-head">
+        <h3 id="deploymentAssignmentTitle">HSS Konuşlandırma Planı</h3>
+        <div class="row" style="margin-top: 0; width: auto; grid-template-columns: repeat(1, minmax(120px, auto)); gap: 6px;">
+          <button id="deploymentAssignmentCloseBtn" class="warn" type="button">Kapat</button>
+        </div>
+      </div>
+      <div id="deploymentAssignmentStatus" class="status">Bilgileri girip kaydedin.</div>
+      <div id="deploymentAssignmentSummary" class="hint"></div>
+      <div>
+        <label>FFS Bazlı Yükleme</label>
+        <table style="margin-top: 6px;">
+          <thead>
+            <tr>
+              <th>FFS</th>
+              <th>Mühimmat Tipi</th>
+              <th>Mühimmat Adedi</th>
+            </tr>
+          </thead>
+          <tbody id="deploymentAssignmentLoadoutRows"></tbody>
+        </table>
+      </div>
+      <div id="deploymentAssignmentInfo" class="hint">Seçilen FFS mühimmat dağılımı WEZ ve hazır mühimmat hesabını belirler.</div>
+      <div class="row" style="margin-top: 12px;">
+        <button id="deploymentAssignmentSaveBtn" class="primary" type="button">Kaydet</button>
+        <button id="deploymentAssignmentCancelBtn" class="ghost" type="button">İptal</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../js/main.js?v=20260326"></script>
+</body>
+</html>

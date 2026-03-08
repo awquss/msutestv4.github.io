@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/iamds/scenario.schema.json",
+  "title": "IAMDS Scenario Definition Schema",
+  "description": "Formal JSON Schema defining scenario inputs for the Integrated Air and Missile Defence Simulation Environment.",
+  "type": "object",
+  "required": ["scenarioId", "entities"],
+  "properties": {
+    "scenarioId": {
+      "type": "string",
+      "description": "Unique identifier of the scenario."
+    },
+    "timeStep": {
+      "type": "number",
+      "minimum": 0.1,
+      "default": 1,
+      "description": "Simulation time step in seconds."
+    },
+    "entities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/TargetEntity" },
+      "description": "List of all targets participating in the scenario."
+    }
+  },
+  "$defs": {
+    "TargetEntity": {
+      "oneOf": [
+        { "$ref": "#/$defs/KinematicTarget" },
+        { "$ref": "#/$defs/BallisticTarget" }
+      ]
+    },
+
+    "KinematicTarget": {
+      "type": "object",
+      "required": [
+        "id",
+        "entityType",
+        "category",
+        "rcs",
+        "pSuccess",
+        "kinematics",
+        "flightPlan"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+
+        "entityType": {
+          "const": "KinematicTarget",
+          "description": "Target governed by kinematic motion constraints."
+        },
+
+        "category": {
+          "type": "string",
+          "enum": [
+            "Aircraft",
+            "UAV",
+            "CruiseMissile",
+            "SOW",
+            "KamikazeUAV"
+          ]
+        },
+
+        "model": {
+          "type": "string",
+          "description": "Platform or weapon system designation."
+        },
+
+        "rcs": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Radar Cross Section (m^2)."
+        },
+
+        "pSuccess": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Probability of successful operation."
+        },
+
+        "kinematics": { "$ref": "#/$defs/Kinematics" },
+
+        "flightPlan": { "$ref": "#/$defs/FlightPlan" },
+
+        "payload": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Payload" },
+          "default": [],
+          "description": "Optional payload carried by the target."
+        }
+      }
+    },
+
+    "BallisticTarget": {
+      "type": "object",
+      "required": [
+        "id",
+        "entityType",
+        "launchTime",
+        "trajectory",
+        "rcs",
+        "pSuccess"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+
+        "entityType": {
+          "const": "BallisticTarget",
+          "description": "Target governed by ballistic motion."
+        },
+
+        "launchTime": {
+          "type": "number",
+          "minimum": 0
+        },
+
+        "trajectory": { "$ref": "#/$defs/BallisticTrajectory" },
+
+        "rcs": {
+          "type": "number",
+          "minimum": 0
+        },
+
+        "pSuccess": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+
+    "Kinematics": {
+      "type": "object",
+      "required": ["speed", "turnRate"],
+      "properties": {
+        "speed": {
+          "type": "object",
+          "required": ["min", "max"],
+          "properties": {
+            "min": { "type": "number", "minimum": 0 },
+            "max": { "type": "number", "minimum": 0 }
+          }
+        },
+        "turnRate": {
+          "type": "object",
+          "required": ["maxDegPerSec"],
+          "properties": {
+            "maxDegPerSec": { "type": "number", "minimum": 0 }
+          }
+        },
+        "vertical": {
+          "type": "object",
+          "properties": {
+            "maxClimbRate": { "type": "number", "minimum": 0 },
+            "maxDescentRate": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    },
+
+    "FlightPlan": {
+      "type": "object",
+      "required": ["takeoffTime", "initialState", "waypoints"],
+      "properties": {
+        "takeoffTime": { "type": "number", "minimum": 0 },
+        "initialState": {
+          "type": "object",
+          "required": ["position", "altitude", "speed", "heading"],
+          "properties": {
+            "position": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "altitude": { "type": "number" },
+            "speed": { "type": "number" },
+            "heading": { "type": "number" }
+          }
+        },
+        "waypoints": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Waypoint" }
+        }
+      }
+    },
+
+    "Waypoint": {
+      "type": "object",
+      "required": ["position"],
+      "properties": {
+        "name": { "type": "string" },
+        "position": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "targetAltitude": { "type": "number" },
+        "targetSpeed": { "type": "number" }
+      }
+    },
+
+    "Payload": {
+      "type": "object",
+      "required": [
+        "id",
+        "category",
+        "rcs",
+        "pSuccess",
+        "kinematics",
+        "release"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "category": {
+          "type": "string",
+          "enum": ["SOW", "GuidedMissile", "CruiseMissile"]
+        },
+        "model": { "type": "string" },
+        "rcs": { "type": "number", "minimum": 0 },
+        "pSuccess": { "type": "number", "minimum": 0, "maximum": 1 },
+        "kinematics": { "$ref": "#/$defs/Kinematics" },
+        "release": {
+          "type": "object",
+          "required": ["time"],
+          "properties": {
+            "time": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    },
+
+    "BallisticTrajectory": {
+      "type": "object",
+      "required": ["launchPoint", "boost", "midcourse", "terminal"],
+      "properties": {
+        "launchPoint": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "boost": {
+          "type": "object",
+          "required": ["duration", "maxAltitude"],
+          "properties": {
+            "duration": { "type": "number", "minimum": 0 },
+            "maxAltitude": { "type": "number", "minimum": 0 }
+          }
+        },
+        "midcourse": {
+          "type": "object",
+          "required": ["duration"],
+          "properties": {
+            "duration": { "type": "number", "minimum": 0 }
+          }
+        },
+        "terminal": {
+          "type": "object",
+          "required": ["impactPoint", "impactSpeed"],
+          "properties": {
+            "impactPoint": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "impactSpeed": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    }
+  }
+}

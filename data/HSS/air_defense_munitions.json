@@ -1,0 +1,137 @@
+{
+  "meta": {
+    "version": "1.0",
+    "generatedFrom": "air_defense_master.xlsx",
+    "generatedAt": "2026-03-03T17:15:52+00:00",
+    "units": {
+      "distance": "km",
+      "altitude": "km",
+      "speed": "m/s"
+    }
+  },
+  "munitions": [
+    {
+      "code": "MIS_HSS_N",
+      "name": "HSS-N Onleyici Muhimmat",
+      "systemCode": "HSS-N",
+      "illReq": 0,
+      "kinematics": {
+        "speedMps": 500
+      },
+      "effectiveness": {
+        "pSuccess": 0.8
+      },
+      "engagementEnvelope": {
+        "minRangeKm": 0.1,
+        "maxRangeKm": 4,
+        "maxEffRangeKm": 3.2,
+        "minAltitudeKm": 0.1,
+        "maxAltitudeKm": 4
+      }
+    },
+    {
+      "code": "MIS_HSS_A",
+      "name": "HSS-A Onleyici Muhimmat",
+      "systemCode": "HSS-A",
+      "illReq": 0,
+      "kinematics": {
+        "speedMps": 600
+      },
+      "effectiveness": {
+        "pSuccess": 0.9
+      },
+      "engagementEnvelope": {
+        "minRangeKm": 0.5,
+        "maxRangeKm": 15,
+        "maxEffRangeKm": 12,
+        "minAltitudeKm": 0.5,
+        "maxAltitudeKm": 8
+      }
+    },
+    {
+      "code": "MIS_HSS_O",
+      "name": "HSS-O Onleyici Muhimmat",
+      "systemCode": "HSS-O",
+      "illReq": 0,
+      "kinematics": {
+        "speedMps": 700
+      },
+      "effectiveness": {
+        "pSuccess": 0.9
+      },
+      "engagementEnvelope": {
+        "minRangeKm": 0.5,
+        "maxRangeKm": 25,
+        "maxEffRangeKm": 20,
+        "minAltitudeKm": 0.5,
+        "maxAltitudeKm": 15
+      }
+    },
+    {
+      "code": "MIS_HSS_U",
+      "name": "HSS-U Block-2 Onleyici Muhimmat",
+      "systemCode": "HSS-U",
+      "illReq": 0,
+      "kinematics": {
+        "speedMps": 850
+      },
+      "effectiveness": {
+        "pSuccess": 0.9
+      },
+      "loadout": {
+        "missilePerFfs": 6
+      },
+      "engagementEnvelope": {
+        "minRangeKm": 1,
+        "maxRangeKm": 150,
+        "maxEffRangeKm": 120,
+        "minAltitudeKm": 1,
+        "maxAltitudeKm": 35
+      }
+    },
+    {
+      "code": "MIS_HSS_U_BLK1",
+      "name": "HSS-U Block-1 Onleyici Muhimmat",
+      "systemCode": "HSS-U",
+      "illReq": 0,
+      "kinematics": {
+        "speedMps": 850
+      },
+      "effectiveness": {
+        "pSuccess": 0.9
+      },
+      "loadout": {
+        "missilePerFfs": 6
+      },
+      "engagementEnvelope": {
+        "minRangeKm": 1,
+        "maxRangeKm": 70,
+        "maxEffRangeKm": 56,
+        "minAltitudeKm": 1,
+        "maxAltitudeKm": 20
+      }
+    },
+    {
+      "code": "MIS_HSS_F",
+      "name": "HSS-F Onleyici Muhimmat",
+      "systemCode": "HSS-F",
+      "illReq": 0,
+      "kinematics": {
+        "speedMps": 1000
+      },
+      "effectiveness": {
+        "pSuccess": 0.8
+      },
+      "loadout": {
+        "missilePerFfs": 6
+      },
+      "engagementEnvelope": {
+        "minRangeKm": 1,
+        "maxRangeKm": 50,
+        "maxEffRangeKm": 40,
+        "minAltitudeKm": 1,
+        "maxAltitudeKm": 35
+      }
+    }
+  ]
+}

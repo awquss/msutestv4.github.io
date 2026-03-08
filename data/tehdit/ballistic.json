@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "version": "1.0",
+    "generatedFrom": "ballistic.xlsx",
+    "generatedAt": "2026-02-06T18:05:19Z",
+    "notes": "Değerler açık kaynak değerleridir. @emreoztas",
+    "units": {
+      "altitude": "m",
+      "speed": "m/s",
+      "time": "s",
+      "range": "km",
+      "rcs": "m^2"
+    }
+  },
+  "ballistics": [
+    {
+      "id": "BM01",
+      "entityType": "BallisticTarget",
+      "category": "SRBM",
+      "model": "Generic SRBM",
+      "description": "Short-range ballistic missile",
+      "defaultRCS": 0.05,
+      "defaultPSuccess": 0.9,
+      "trajectory": {
+        "boost": {
+          "duration": 60,
+          "maxAltitude": 80000
+        },
+        "midcourse": {
+          "duration": 180
+        },
+        "terminal": {
+          "impactSpeed": 1800
+        }
+      },
+      "range": {
+        "minKm": 50,
+        "maxKm": 300
+      }
+    },
+    {
+      "id": "BM02",
+      "entityType": "BallisticTarget",
+      "category": "SRBM",
+      "model": "Quasi-Ballistic SRBM",
+      "description": "Maneuvering SRBM",
+      "defaultRCS": 0.03,
+      "defaultPSuccess": 0.88,
+      "trajectory": {
+        "boost": {
+          "duration": 55,
+          "maxAltitude": 60000
+        },
+        "midcourse": {
+          "duration": 150
+        },
+        "terminal": {
+          "impactSpeed": 2000
+        }
+      },
+      "range": {
+        "minKm": 40,
+        "maxKm": 250
+      }
+    },
+    {
+      "id": "BM03",
+      "entityType": "BallisticTarget",
+      "category": "MRBM",
+      "model": "Generic MRBM",
+      "description": "Medium-range ballistic missile",
+      "defaultRCS": 0.08,
+      "defaultPSuccess": 0.92,
+      "trajectory": {
+        "boost": {
+          "duration": 90,
+          "maxAltitude": 150000
+        },
+        "midcourse": {
+          "duration": 600
+        },
+        "terminal": {
+          "impactSpeed": 3000
+        }
+      },
+      "range": {
+        "minKm": 500,
+        "maxKm": 3000
+      }
+    },
+    {
+      "id": "BM04",
+      "entityType": "BallisticTarget",
+      "category": "IRBM",
+      "model": "Generic IRBM",
+      "description": "Intermediate-range ballistic missile",
+      "defaultRCS": 0.12,
+      "defaultPSuccess": 0.94,
+      "trajectory": {
+        "boost": {
+          "duration": 120,
+          "maxAltitude": 300000
+        },
+        "midcourse": {
+          "duration": 1200
+        },
+        "terminal": {
+          "impactSpeed": 4500
+        }
+      },
+      "range": {
+        "minKm": 3000,
+        "maxKm": 5500
+      }
+    },
+    {
+      "id": "BM05",
+      "entityType": "BallisticTarget",
+      "category": "SRBM",
+      "model": "Low-RCS SRBM",
+      "description": "Reduced-RCS test variant",
+      "defaultRCS": 0.02,
+      "defaultPSuccess": 0.85,
+      "trajectory": {
+        "boost": {
+          "duration": 60,
+          "maxAltitude": 75000
+        },
+        "midcourse": {
+          "duration": 170
+        },
+        "terminal": {
+          "impactSpeed": 1700
+        }
+      },
+      "range": {
+        "minKm": 50,
+        "maxKm": 280
+      }
+    }
+  ]
+}

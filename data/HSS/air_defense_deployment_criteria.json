@@ -1,0 +1,215 @@
+{
+  "meta": {
+    "version": "1.0",
+    "generatedFrom": "air_defense_master.xlsx",
+    "generatedAt": "2026-03-03T17:15:52+00:00",
+    "units": {
+      "distanceFromProtectedCenter": "km",
+      "componentSpacing": "m",
+      "systemCount": "count"
+    }
+  },
+  "deploymentCriteria": [
+    {
+      "systemCode": "HSS-N",
+      "defenseRole": "Alçak İrtifa Namlulu Nokta Hava Savunma",
+      "minimumSuggestedSystemCount": 4,
+      "distanceFromProtectedCenterKm": {
+        "min": 3,
+        "max": 5
+      },
+      "pairDistanceConstraintsM": [
+        {
+          "pair": "Radar-KKM",
+          "min": 100,
+          "max": 500
+        },
+        {
+          "pair": "KKM-FFS",
+          "min": 100,
+          "max": 500
+        },
+        {
+          "pair": "Radar-FFS",
+          "min": 100,
+          "max": 500
+        },
+        {
+          "pair": "Radar-EO",
+          "min": 100,
+          "max": 200
+        },
+        {
+          "pair": "KKM-EO",
+          "min": 100,
+          "max": 200
+        },
+        {
+          "pair": "EO-FFS",
+          "min": 100,
+          "max": 200
+        },
+        {
+          "pair": "FFS-FFS",
+          "min": 100,
+          "max": 500
+        }
+      ]
+    },
+    {
+      "systemCode": "HSS-A",
+      "defenseRole": "Alcak irtifa nokta hava savunma",
+      "minimumSuggestedSystemCount": 4,
+      "distanceFromProtectedCenterKm": {
+        "min": 5,
+        "max": 10
+      },
+      "pairDistanceConstraintsM": [
+        {
+          "pair": "Radar-KKM",
+          "min": 0,
+          "max": 0
+        },
+        {
+          "pair": "KKM-FFS",
+          "min": 0,
+          "max": 0
+        },
+        {
+          "pair": "Radar-FFS",
+          "min": 0,
+          "max": 0
+        },
+        {
+          "pair": "FFS-FFS",
+          "min": 0,
+          "max": 0
+        }
+      ],
+      "note": "Tek arac kabulu: tum bilesenler ayni platformda"
+    },
+    {
+      "systemCode": "HSS-O",
+      "defenseRole": "Orta irtifa nokta hava savunma",
+      "minimumSuggestedSystemCount": 4,
+      "distanceFromProtectedCenterKm": {
+        "min": 15,
+        "max": 30
+      },
+      "pairDistanceConstraintsM": [
+        {
+          "pair": "Radar-KKM",
+          "min": 100,
+          "max": 1000
+        },
+        {
+          "pair": "KKM-FFS",
+          "min": 100,
+          "max": 1000
+        },
+        {
+          "pair": "Radar-FFS",
+          "min": 100,
+          "max": 1000
+        },
+        {
+          "pair": "FFS-FFS",
+          "min": 100,
+          "max": 1000
+        }
+      ]
+    },
+    {
+      "systemCode": "HSS-U",
+      "defenseRole": "Yuksek irtifa bolge hava savunma",
+      "minimumSuggestedSystemCount": 3,
+      "distanceFromProtectedCenterKm": {
+        "min": 50,
+        "max": 100
+      },
+      "pairDistanceConstraintsM": [
+        {
+          "pair": "Radar-KKM",
+          "min": 100,
+          "max": 3000
+        },
+        {
+          "pair": "KKM-FFS",
+          "min": 100,
+          "max": 3000
+        },
+        {
+          "pair": "Radar-FFS",
+          "min": 100,
+          "max": 3000
+        },
+        {
+          "pair": "Radar-AKR",
+          "min": 100,
+          "max": 3000
+        },
+        {
+          "pair": "KKM-AKR",
+          "min": 100,
+          "max": 3000
+        },
+        {
+          "pair": "AKR-FFS",
+          "min": 100,
+          "max": 3000
+        },
+        {
+          "pair": "FFS-FFS",
+          "min": 100,
+          "max": 3000
+        }
+      ]
+    },
+    {
+      "systemCode": "HSS-F",
+      "defenseRole": "Yuksek irtifa bolge fuze savunma",
+      "minimumSuggestedSystemCount": 3,
+      "distanceFromProtectedCenterKm": {
+        "min": 10,
+        "max": 30
+      },
+      "pairDistanceConstraintsM": [
+        {
+          "pair": "Radar-KKM",
+          "min": 100,
+          "max": 2000
+        },
+        {
+          "pair": "KKM-FFS",
+          "min": 100,
+          "max": 2000
+        },
+        {
+          "pair": "Radar-FFS",
+          "min": 100,
+          "max": 2000
+        },
+        {
+          "pair": "Radar-AKR",
+          "min": 100,
+          "max": 2000
+        },
+        {
+          "pair": "KKM-AKR",
+          "min": 100,
+          "max": 2000
+        },
+        {
+          "pair": "AKR-FFS",
+          "min": 100,
+          "max": 2000
+        },
+        {
+          "pair": "FFS-FFS",
+          "min": 100,
+          "max": 2000
+        }
+      ]
+    }
+  ]
+}

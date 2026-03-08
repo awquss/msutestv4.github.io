@@ -1,0 +1,309 @@
+{
+  "scenarioId": "DEF-001",
+  "scenarioName": "MSU Savunma Senaryosu 1",
+  "scenarioThreatDirection": "east",
+  "referenceFrame": {
+    "origin": {
+      "x": 0,
+      "y": 0
+    },
+    "distanceUnit": "m",
+    "altitudeUnit": "m",
+    "speedUnit": "m/s",
+    "angleUnit": "deg",
+    "angleZero": "true_north",
+    "positiveAngleDirection": "clockwise"
+  },
+  "protectedAssets": [
+    {
+      "id": "PA-001",
+      "name": "Kritik Tesis 1",
+      "HVA_value": 8,
+      "defenseType": "point",
+      "geometry": {
+        "type": "Point",
+        "coordinates": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    }
+  ],
+  "systemCatalog": [
+    {
+      "code": "HSS-O",
+      "role": "Orta irtifa nokta hava savunma",
+      "components": {
+        "radarCount": 1,
+        "radarHVAValue": 9,
+        "kkmCount": 1,
+        "eoCount": 0,
+        "ffsCount": 3,
+        "ffsMinCount": 1,
+        "ffsMaxCount": 4,
+        "missilePerFfs": 6,
+        "totalReadyMissile": 18
+      },
+      "technical": {
+        "radar": {
+          "minTrackRangeM": 100,
+          "illumCapacity": 99,
+          "setupTimeIllTrackSec": 0,
+          "trackRangeKm": 55,
+          "azimuthDeg": {
+            "min": 0,
+            "max": 360
+          },
+          "elevationDeg": {
+            "min": 0,
+            "max": 80
+          }
+        },
+        "engagement": {
+          "effectiveRangeKm": 25,
+          "effectiveAltitudeKm": 15
+        }
+      },
+      "interceptor": {
+        "primaryMunitionCode": "MIS_HSS_O",
+        "compatibleMunitionCodes": [
+          "MIS_HSS_O"
+        ],
+        "reloadTimeSec": 300,
+        "weaponSetupTimeSec": 3,
+        "weaponLaunchDelaySec": 0
+      },
+      "deploymentConstraints": {
+        "recommendedSystemCount": 4,
+        "centerDistanceM": {
+          "min": 15000,
+          "max": 30000
+        },
+        "pairDistanceM": {
+          "radarKkm": {
+            "min": 100,
+            "max": 1000
+          },
+          "kkmFfs": {
+            "min": 100,
+            "max": 1000
+          },
+          "radarFfs": {
+            "min": 100,
+            "max": 1000
+          },
+          "ffsFfs": {
+            "min": 100,
+            "max": 1000
+          }
+        }
+      }
+    }
+  ],
+  "munitionCatalog": [
+    {
+      "code": "MIS_HSS_O",
+      "name": "HSS-O Onleyici Muhimmat",
+      "systemCode": "HSS-O",
+      "illReq": 0,
+      "kinematics": {
+        "speedMps": 700
+      },
+      "effectiveness": {
+        "pSuccess": 0.9
+      },
+      "loadout": {
+        "missilePerFfs": 6
+      },
+      "engagementEnvelope": {
+        "minRangeM": 500,
+        "maxRangeM": 25000,
+        "maxEffRangeM": 20000,
+        "minAltitudeM": 500,
+        "maxAltitudeM": 15000
+      }
+    }
+  ],
+  "deploymentPlans": [
+    {
+      "id": "DP-001",
+      "protectedAssetId": "PA-001",
+      "threatDirection": "east",
+      "assignments": [
+        {
+          "id": "ASG0001",
+          "systemCode": "HSS-O",
+          "munitionCode": "MIS_HSS_O",
+          "ffsLoadout": [
+            { "munitionCode": "MIS_HSS_O", "missileCount": 6 },
+            { "munitionCode": "MIS_HSS_O", "missileCount": 6 },
+            { "munitionCode": "MIS_HSS_O", "missileCount": 6 }
+          ],
+          "ffsMunitionCodes": [
+            "MIS_HSS_O",
+            "MIS_HSS_O",
+            "MIS_HSS_O"
+          ],
+          "count": 1,
+          "ffsCountPerUnit": 3,
+          "totalReadyMissilePerUnit": 18
+        }
+      ]
+    }
+  ],
+  "deployedUnits": [
+    {
+      "id": "HSSO01",
+      "planId": "DP-001",
+      "assignmentId": "ASG0001",
+      "protectedAssetId": "PA-001",
+      "systemCode": "HSS-O",
+      "munitionCode": "MIS_HSS_O",
+      "ffsLoadout": [
+        { "munitionCode": "MIS_HSS_O", "missileCount": 6 },
+        { "munitionCode": "MIS_HSS_O", "missileCount": 6 },
+        { "munitionCode": "MIS_HSS_O", "missileCount": 6 }
+      ],
+      "ffsMunitionCodes": [
+        "MIS_HSS_O",
+        "MIS_HSS_O",
+        "MIS_HSS_O"
+      ],
+      "sequence": 1,
+      "components": {
+        "radar": {
+          "id": "HSSO01.Radar",
+          "position": {
+            "x": 22000,
+            "y": 0
+          },
+          "HVA_value": 9,
+          "blindSectors": []
+        },
+        "kkm": {
+          "id": "HSSO01.KKM",
+          "position": {
+            "x": 22100,
+            "y": 0
+          }
+        },
+        "ffs": [
+          {
+            "id": "HSSO01.FFS1",
+            "munitionCode": "MIS_HSS_O",
+            "missileCount": 6,
+            "position": {
+              "x": 22500,
+              "y": 850
+            },
+            "blindSectors": []
+          },
+          {
+            "id": "HSSO01.FFS2",
+            "munitionCode": "MIS_HSS_O",
+            "missileCount": 6,
+            "position": {
+              "x": 22500,
+              "y": -850
+            },
+            "blindSectors": [
+              [30, 45],
+              [75, 90]
+            ]
+          },
+          {
+            "id": "HSSO01.FFS3",
+            "munitionCode": "MIS_HSS_O",
+            "missileCount": 6,
+            "position": {
+              "x": 21500,
+              "y": 0
+            },
+            "blindSectors": []
+          }
+        ]
+      }
+    }
+  ],
+  "threatScenario": {
+    "scenarioId": "THR-001",
+    "timeStep": 1,
+    "planning": {
+      "platformTot": 5600,
+      "kinematicCount": 1,
+      "ballisticCount": 1
+    },
+    "entities": [
+      {
+        "id": "PLT-entity-01",
+        "entityType": "KinematicTarget",
+        "category": "Aircraft",
+        "model": "F16",
+        "rcs": 4,
+        "pSuccess": 0.9,
+        "kinematics": {
+          "speed": {
+            "min": 200,
+            "max": 400
+          },
+          "turnRate": {
+            "maxDegPerSec": 2
+          }
+        },
+        "flightPlan": {
+          "takeoffTime": 1,
+          "initialState": {
+            "position": [
+              -50000,
+              10000
+            ],
+            "altitude": 1000,
+            "speed": 250,
+            "heading": 90
+          },
+          "waypoints": [
+            {
+              "name": "WP-1",
+              "position": [
+                -25000,
+                5000
+              ],
+              "targetAltitude": 1000,
+              "targetSpeed": 250
+            }
+          ]
+        },
+        "payload": []
+      },
+      {
+        "id": "BAL-entity-01",
+        "entityType": "BallisticTarget",
+        "launchTime": 120,
+        "impactTime": 420,
+        "trajectory": {
+          "launchPoint": [
+            -120000,
+            0
+          ],
+          "boost": {
+            "duration": 45,
+            "maxAltitude": 30000
+          },
+          "midcourse": {
+            "duration": 220
+          },
+          "terminal": {
+            "impactPoint": [
+              10000,
+              5000
+            ],
+            "impactSpeed": 1800
+          }
+        },
+        "rcs": 1.2,
+        "pSuccess": 0.8
+      }
+    ]
+  },
+  "notes": "Tek senaryo cikti dosyasi savunma ve tehdit planlama verilerini birlikte tasir."
+}
