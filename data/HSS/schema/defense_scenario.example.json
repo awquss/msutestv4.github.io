@@ -27,6 +27,36 @@
           "y": 0
         }
       }
+    },
+    {
+      "id": "E001",
+      "name": "EIRS-01",
+      "assetClass": "eirsRadar",
+      "HVA_value": 6,
+      "defenseType": "point",
+      "geometry": {
+        "type": "Point",
+        "coordinates": {
+          "x": 12000,
+          "y": 4000
+        }
+      },
+      "technical": {
+        "radar": {
+          "minTrackRangeM": 100,
+          "illumCapacity": 0,
+          "setupTimeIllTrackSec": 0,
+          "trackRangeKm": 400,
+          "azimuthDeg": {
+            "min": 0,
+            "max": 360
+          },
+          "elevationDeg": {
+            "min": 0,
+            "max": 80
+          }
+        }
+      }
     }
   ],
   "systemCatalog": [

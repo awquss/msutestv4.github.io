@@ -1,0 +1,53 @@
+sequenceDiagram
+    autonumber
+    actor User as Planlayıcı
+    participant Index as Ana Ekran<br/>index.html
+    participant ScenarioUI as Senaryo UI<br/>html/senaryo.html + js/main.js
+    participant HSSJson as HSS JSON Kaynakları
+    participant ThreatJson as Tehdit JSON Kaynakları
+    participant Session as sessionStorage
+    participant WName as window.name
+    participant ThreatUI as Gömülü Tehdit UI<br/>html/tehdit-planlama.html + js/threat-main.js
+    participant Export as Birleşik JSON Dışa Aktarım
+    participant Matlab as MATLAB Ortamı
+
+    User ->> Index: Yeni Senaryo Oluşturma seçer
+    Index ->> ScenarioUI: senaryo.html?freshSession=1 açılır
+    ScenarioUI ->> Session: eski oturum verilerini temizle
+    ScenarioUI ->> HSSJson: air_defense_systems / criteria / munitions yükle
+    HSSJson -->> ScenarioUI: HSS katalogları ve konuşlandırma kriterleri
+    ScenarioUI ->> ThreatJson: schema / platforms / weapons / ballistic preload et
+    ThreatJson -->> ScenarioUI: tehdit katalogları
+    ScenarioUI ->> Session: msu:threat_catalogs:v1 yaz
+    ScenarioUI ->> WName: msuSharedThreatCatalogs yaz
+
+    User ->> ScenarioUI: korunacak varlık ve EİRS kayıtlarını oluşturur
+    ScenarioUI ->> Session: msu:defense_regions:v1 ve msu:eirs:v1 yaz
+    ScenarioUI ->> Session: msu:defended_assets:v1 yaz
+    ScenarioUI ->> WName: msuSharedDefendedAssets yaz
+
+    User ->> ScenarioUI: konuşlandırma planı ve HSS atamaları oluşturur
+    ScenarioUI ->> ScenarioUI: konuşlandırma önizlemesi ve bileşen yerleşimlerini hesaplar
+    ScenarioUI ->> Session: paylaşılan defended assets payload güncellenir
+    ScenarioUI ->> WName: paylaşılan defended assets payload güncellenir
+
+    User ->> ScenarioUI: Tehdit sekmesini açar
+    ScenarioUI ->> ThreatUI: iframe yüklenir ve ortak harita köprüsü kurulur
+    ThreatUI ->> Session: msu:threat_catalogs:v1 oku
+    ThreatUI ->> WName: msuSharedThreatCatalogs oku
+    ThreatUI ->> Session: msu:defended_assets:v1 oku
+    ThreatUI ->> WName: msuSharedDefendedAssets oku
+    ThreatUI -->> User: savunma hedefleri hedef seçimlerinde gösterilir
+
+    User ->> ThreatUI: platform, payload ve balistik tehdit planını tamamlar
+    ThreatUI ->> ThreatUI: buildScenario()
+    ThreatUI ->> ThreatUI: validateScenarioAgainstSchema()
+    ThreatUI -->> ScenarioUI: requestThreatScenarioSummary() ve requestThreatScenario()
+
+    User ->> ScenarioUI: JSON sekmesini açar ve indirir
+    ScenarioUI ->> Export: buildUnifiedScenarioExport()
+    Export ->> ThreatUI: tehdit senaryosunu al
+    ThreatUI -->> Export: threatScenario
+    Export -->> ScenarioUI: birleşik savunma + tehdit JSON
+    ScenarioUI ->> User: JSON dosyasını indir
+    User ->> Matlab: indirilen dosyayı MATLAB ortamına aktarır

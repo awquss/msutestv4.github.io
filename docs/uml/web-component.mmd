@@ -1,0 +1,43 @@
+flowchart LR
+    Index["Ana Ekran<br/>index.html"]
+    EditEntry["Senaryo Düzenleme Girişi<br/>html/senaryo-duzenleme.html"]
+    ScenarioUI["Birleşik Senaryo UI<br/>html/senaryo.html<br/>js/main.js"]
+    ThreatUI["Gömülü Tehdit UI<br/>html/tehdit-planlama.html<br/>js/threat-main.js"]
+    ThreatHelpers["Tehdit yardımcı modülleri<br/>js/threat-config.js<br/>js/threat-utils.js<br/>js/threat-fallback-data.js"]
+
+    HSSData["HSS veri kaynakları<br/>data/HSS/air_defense_systems.json<br/>data/HSS/air_defense_deployment_criteria.json<br/>data/HSS/air_defense_munitions.json"]
+    ThreatData["Tehdit veri kaynakları<br/>data/tehdit/platforms.json<br/>data/tehdit/weapons.json<br/>data/tehdit/ballistic.json"]
+    ThreatSchema["Tehdit şeması<br/>data/tehdit/schema/scenario.schema.json"]
+    ScenarioImport["İçe aktarılan senaryo JSON dosyası"]
+
+    Session["sessionStorage<br/>msu:defense_regions:v1<br/>msu:eirs:v1<br/>msu:defended_assets:v1<br/>msu:threat_catalogs:v1<br/>msu:edit_scenario_import:v1<br/>msu:edit_threat_import:v1"]
+    WName["window.name<br/>msuSharedDefendedAssets<br/>msuSharedThreatCatalogs"]
+    IframeBridge["iframe köprüsü<br/>requestThreatScenarioSummary<br/>requestThreatScenario<br/>requestSharedThreatMapRender"]
+    Export["Birleşik JSON dışa aktarımı<br/>buildUnifiedScenarioExport + downloadJsonFile"]
+    Matlab["MATLAB Ortamı"]
+
+    Index -->|yeni senaryo| ScenarioUI
+    Index -->|senaryo düzenleme| EditEntry
+
+    EditEntry -->|dosya seç ve doğrula| ScenarioImport
+    EditEntry -->|import payload yaz| Session
+    EditEntry -->|editMode ile aç| ScenarioUI
+
+    ScenarioUI -->|fetch| HSSData
+    ScenarioUI -->|preload fetch| ThreatData
+    ScenarioUI -->|preload fetch| ThreatSchema
+    ScenarioUI -->|korunacak varlık, EİRS, paylaşılan hedefler| Session
+    ScenarioUI -->|paylaşılan hedefler ve tehdit katalogları| WName
+    ScenarioUI -->|iframe src ./tehdit-planlama.html?embedded=1| ThreatUI
+    ScenarioUI <--> IframeBridge
+    IframeBridge <--> ThreatUI
+
+    ThreatUI -->|import| ThreatHelpers
+    ThreatUI -->|katalog ve paylaşılan hedefleri oku| Session
+    ThreatUI -->|katalog ve paylaşılan hedefleri oku| WName
+    ThreatUI -->|doğrulama| ThreatSchema
+    ThreatUI -->|gerekirse fallback kullan| ThreatHelpers
+
+    ScenarioUI -->|birleşik senaryo üret| Export
+    ThreatUI -->|threatScenario ver| Export
+    Export -->|JSON dosyası| Matlab

@@ -178,6 +178,48 @@ window.requestThreatScenario = () => {
       return scenario && typeof scenario === "object" ? JSON.parse(JSON.stringify(scenario)) : null;
     };
 
+window.requestThreatScenarioForExport = () => {
+      const scenario = buildScenario(false) || state.scenario || null;
+      if (scenario && typeof scenario === "object") {
+        return JSON.parse(JSON.stringify(scenario));
+      }
+
+      const entities = [];
+      for (const item of state.savedKinematicEntities) {
+        if (item?.entity && typeof item.entity === "object") {
+          entities.push(item.entity);
+        }
+      }
+      for (const item of state.savedBallisticEntities) {
+        if (item?.entity && typeof item.entity === "object") {
+          entities.push(item.entity);
+        }
+      }
+      if (!entities.length) {
+        return null;
+      }
+
+      return {
+        scenarioId: getThreatScenarioId() || "THREAT_EXPORT",
+        timeStep: 1,
+        planning: {
+          platformTot: Math.max(0, Number(refs.totTime.value) || 0),
+          payloadTots: state.payloadRows.map((row) => Math.max(0, Number(row?.targetTot) || 0)),
+          ballisticLaunchTime: parseOptionalNumberInput(refs.launchTime.value),
+          ballisticImpactTot: parseOptionalNumberInput(refs.impactTot.value),
+          attackTarget: [round(state.attackTarget.x, 3), round(state.attackTarget.y, 3)],
+          attackTargetDefinition: getCurrentAttackTargetDefinition(),
+          payloadReleasePoint: null,
+          payloadTargetPoint: null,
+          payloadTargetDefinition: null,
+          ballisticImpactDefinition: getCurrentBallisticImpactDefinition(),
+          kinematicCount: state.savedKinematicEntities.length,
+          ballisticCount: state.savedBallisticEntities.length
+        },
+        entities: JSON.parse(JSON.stringify(entities))
+      };
+    };
+
 const ctx = refs.routeCanvas.getContext("2d");
 const ballisticCtx = refs.ballisticGraph.getContext("2d");
 const CACHE_BUST = `?v=${Date.now()}`;
@@ -1156,6 +1198,11 @@ async function init() {
 
     function activateTab(tabName) {
       state.activeTab = tabName;
+      state.canvasMode = null;
+      state.ballisticMode = null;
+      if (tabName !== "ballistic") {
+        resetBallisticDraftState();
+      }
       for (const btn of refs.tabButtons) {
         btn.classList.toggle("active", btn.dataset.tabBtn === tabName);
       }
@@ -1166,6 +1213,7 @@ async function init() {
         drawBallisticGraph();
       }
       syncParentThreatSharedCards();
+      drawCanvas();
     }
 
     function syncParentThreatSharedCards() {
@@ -1854,7 +1902,7 @@ async function init() {
         return;
       }
 
-      if (state.ballisticEnabled && state.ballisticMode) {
+      if (state.activeTab === "ballistic" && state.ballisticEnabled && state.ballisticMode) {
         if (state.ballisticMode === "launch") {
           state.ballisticLaunch = { x, y };
         } else {
@@ -2116,6 +2164,9 @@ async function init() {
     }
 
     function setBallisticMode(mode) {
+      if (state.activeTab !== "ballistic") {
+        return;
+      }
       if (!state.ballisticEnabled || !state.selectedBallistic) {
         popupErrors(["Önce balistik modeli seçiniz."]);
         return;
@@ -2134,6 +2185,7 @@ async function init() {
       state.ballisticLaunch = null;
       state.ballisticImpact = null;
       state.ballisticMode = null;
+      state.canvasMode = null;
       const assetId = parseAssetIdFromSelectValue(refs.ballisticImpactSelect.value);
       const currentValue = String(refs.ballisticImpactSelect.value || "").trim();
       state.ballisticImpactSource = {
@@ -2176,17 +2228,26 @@ async function init() {
     }
 
     function clearBallisticDraft() {
+      resetBallisticDraftState();
+      drawCanvas();
+      drawBallisticGraph();
+      renderConstraintSummary();
+      buildScenario(false);
+    }
+
+    function resetBallisticDraftState() {
       state.ballisticEnabled = false;
       state.selectedBallistic = null;
+      state.ballisticMode = null;
+      state.ballisticLaunch = null;
+      state.ballisticImpact = null;
       state.ballisticImpactSource = { mode: "", defendedAssetId: "" };
       refs.ballisticImpactSelect.value = "";
       refs.ballisticSelect.value = "";
       refs.launchTime.value = DEFAULTS.launchTime;
       refs.impactTot.value = DEFAULTS.impactTot;
-      clearBallisticPoints();
-      drawBallisticGraph();
-      renderConstraintSummary();
-      buildScenario(false);
+      syncBallisticPointInputs();
+      updateBallisticInfo();
     }
 
     function updateBallisticInfo() {
@@ -2511,6 +2572,7 @@ async function init() {
       state.savedBallisticEntities.push(built);
       state.ballisticEntityCounter += 1;
       renderSavedBallisticTable();
+      clearBallisticDraft();
       refs.status.textContent = `Balistik hedef senaryoya eklendi (${state.savedBallisticEntities.length}).`;
       refs.status.className = "status ok";
       notifyParentScenarioSummaryChanged();
@@ -2806,15 +2868,15 @@ async function init() {
 
       drawPayloadReleaseMarkers();
 
-      if (state.ballisticEnabled && state.ballisticLaunch) {
+      if (state.activeTab === "ballistic" && state.ballisticEnabled && state.ballisticLaunch) {
         drawCross(state.ballisticLaunch.x, state.ballisticLaunch.y, "#154c79", "L");
       }
 
-      if (state.ballisticEnabled && state.ballisticImpact) {
+      if (state.activeTab === "ballistic" && state.ballisticEnabled && state.ballisticImpact) {
         drawCross(state.ballisticImpact.x, state.ballisticImpact.y, "#7d3a02", "I");
       }
 
-      if (state.ballisticEnabled && state.ballisticLaunch && state.ballisticImpact) {
+      if (state.activeTab === "ballistic" && state.ballisticEnabled && state.ballisticLaunch && state.ballisticImpact) {
         ctx.strokeStyle = "#4cc8ff";
         ctx.setLineDash([pxToWorld(8), pxToWorld(6)]);
         ctx.beginPath();

@@ -1731,6 +1731,27 @@ function buildSharedDefendedAssetsPayload() {
         center: radarCenter,
         points: [radarCenter]
       });
+
+      const unitFfsLoadout = Array.isArray(unit?.ffsLoadout) ? unit.ffsLoadout : [];
+      const unitFfsComponents = Array.isArray(unit?.components?.ffs) ? unit.components.ffs : [];
+      unitFfsComponents.forEach((ffs, index) => {
+        const ffsCenter = {
+          x: Math.round(numberOrZero(ffs?.x)),
+          y: Math.round(numberOrZero(ffs?.y))
+        };
+        const loadoutRow = unitFfsLoadout[index] || {};
+        const munitionLabel = String(loadoutRow?.munitionCode || "").trim()
+          ? ` (${getMunitionShortLabel(loadoutRow.munitionCode)})`
+          : "";
+        assets.push({
+          id: `${unit.planId}_${sanitizeSystemCode(unit.code)}_${assignmentToken}${String(unit.sequence).padStart(2, "0")}_FFS${index + 1}`,
+          name: `${unit.regionName} | ${getDeploymentUnitLabel(unit)} FFS-${index + 1}${munitionLabel}`,
+          type: "point",
+          HVA_value: 1,
+          center: ffsCenter,
+          points: [ffsCenter]
+        });
+      });
     }
   }
 
@@ -3436,7 +3457,7 @@ function syncDefenseJsonView() {
 
   const payload = buildUnifiedScenarioExport(scenarioName);
   refs.defenseJsonOutput.value = JSON.stringify(payload, null, 2);
-  refs.jsonStatus.innerHTML = `${summaryHtml}<br>JSON hazir. Senaryo ismini guncelleyebilir veya dogrudan indirebilirsiniz.`;
+  refs.jsonStatus.innerHTML = `${summaryHtml}<br>JSON ve PDF hazir. Senaryo ismini guncelleyebilir veya dogrudan indirebilirsiniz.`;
   refs.jsonStatus.className = "status ok";
 }
 
@@ -3498,6 +3519,25 @@ function getThreatScenarioPayload() {
   } catch (_err) {
     // Ignore iframe bridge errors.
   }
+  try {
+    const exportScenario = refs.threatPlanningFrame?.contentWindow?.requestThreatScenarioForExport?.();
+    if (exportScenario && typeof exportScenario === "object" && !Array.isArray(exportScenario)) {
+      return exportScenario;
+    }
+  } catch (_err) {
+    // Ignore iframe bridge errors.
+  }
+  try {
+    const importedRaw = window.sessionStorage.getItem(EDIT_THREAT_IMPORT_KEY);
+    if (importedRaw) {
+      const importedScenario = JSON.parse(importedRaw);
+      if (importedScenario && typeof importedScenario === "object" && !Array.isArray(importedScenario)) {
+        return importedScenario;
+      }
+    }
+  } catch (_err) {
+    // Ignore fallback storage errors.
+  }
   return null;
 }
 
@@ -3533,11 +3573,27 @@ function exportDefenseScenario() {
   }
 
   const payload = buildUnifiedScenarioExport(scenarioName);
-  const filename = `${sanitizeFilename(scenarioName) || "msu_senaryo"}.json`;
-  downloadJsonFile(payload, filename);
-  setDeploymentStatus(`Senaryo JSON olarak dışa aktarıldı: ${filename}`, "info");
-  refs.jsonStatus.textContent = `JSON indirildi: ${filename}`;
+  const baseFilename = `${sanitizeFilename(scenarioName) || "msu_senaryo"}`;
+  const jsonFilename = `${baseFilename}.json`;
+  const pdfFilename = `${baseFilename}.pdf`;
+  refs.jsonStatus.textContent = `JSON indiriliyor: ${jsonFilename}`;
   refs.jsonStatus.className = "status ok";
+
+  Promise.resolve()
+    .then(() => downloadJsonFile(payload, jsonFilename))
+    .then(() => waitMs(300))
+    .then(() => downloadScenarioPdfFile(payload, pdfFilename))
+    .then(() => {
+      setDeploymentStatus(`Senaryo JSON ve PDF olarak dışa aktarıldı: ${jsonFilename}, ${pdfFilename}`, "info");
+      refs.jsonStatus.textContent = `JSON ve PDF indirildi: ${jsonFilename}, ${pdfFilename}`;
+      refs.jsonStatus.className = "status ok";
+    })
+    .catch((error) => {
+      console.error("PDF export failed", error);
+      setDeploymentStatus(`Senaryo JSON olarak dışa aktarıldı ancak PDF üretilemedi: ${jsonFilename}`, "warn");
+      refs.jsonStatus.textContent = `JSON indirildi: ${jsonFilename} | PDF üretilemedi.`;
+      refs.jsonStatus.className = "status warn";
+    });
 }
 
 window.syncDefenseJsonView = syncDefenseJsonView;
@@ -3700,12 +3756,23 @@ function buildUnifiedScenarioExport(scenarioName = "MSÜ Senaryo Plani") {
 }
 
 function buildProtectedAssetExport(region) {
+  const isEirs = String(region?.id || "").trim().toUpperCase().startsWith("E");
+  const commonFields = {
+    id: region.id,
+    name: region.name,
+    HVA_value: Math.max(1, Math.min(10, Math.round(numberOrZero(region.hvaValue) || 1))),
+    ...(isEirs
+      ? {
+          assetClass: "eirsRadar",
+          technical: buildEirsTechnicalExport()
+        }
+      : {})
+  };
+
   if (region.type === "point") {
     const point = region.points[0] || { x: 0, y: 0 };
     return {
-      id: region.id,
-      name: region.name,
-      HVA_value: Math.max(1, Math.min(10, Math.round(numberOrZero(region.hvaValue) || 1))),
+      ...commonFields,
       defenseType: "point",
       geometry: {
         type: "Point",
@@ -3718,9 +3785,7 @@ function buildProtectedAssetExport(region) {
   }
 
   return {
-    id: region.id,
-    name: region.name,
-    HVA_value: Math.max(1, Math.min(10, Math.round(numberOrZero(region.hvaValue) || 1))),
+    ...commonFields,
     defenseType: "area",
     geometry: {
       type: "Polygon",
@@ -3728,6 +3793,27 @@ function buildProtectedAssetExport(region) {
         x: Math.round(numberOrZero(point.x)),
         y: Math.round(numberOrZero(point.y))
       }))
+    }
+  };
+}
+
+function buildEirsTechnicalExport() {
+  const source = state.systemCatalogByCode["HSS-U"] || state.systemCatalogByCode["HSS-F"] || {};
+  const radar = source?.technical?.radar || {};
+  return {
+    radar: {
+      minTrackRangeM: Math.round(numberOrZero(radar?.trackRange?.minTrackRangeM)),
+      illumCapacity: 0,
+      setupTimeIllTrackSec: Math.max(0, Math.round(numberOrZero(radar?.setupTimeIllTrackSec))),
+      trackRangeKm: numberOrZero(radar?.trackRange?.rangeKm || getEirsRadarRangeMeters() / 1000),
+      azimuthDeg: {
+        min: numberOrZero(radar?.azimuthDeg?.min),
+        max: numberOrZero(radar?.azimuthDeg?.max)
+      },
+      elevationDeg: {
+        min: numberOrZero(radar?.elevationDeg?.min),
+        max: numberOrZero(radar?.elevationDeg?.max)
+      }
     }
   };
 }
@@ -3772,6 +3858,24 @@ function buildSystemCatalogExport(code) {
           max: numberOrZero(item?.technical?.radar?.elevationDeg?.max)
         }
       },
+      ...(item?.technical?.akr
+        ? {
+            akr: {
+              minTrackRangeM: Math.round(numberOrZero(item?.technical?.akr?.minTrackRangeM)),
+              illumCapacity: Math.max(0, Math.round(numberOrZero(item?.technical?.akr?.illumCapacity))),
+              setupTimeIllTrackSec: Math.max(0, Math.round(numberOrZero(item?.technical?.akr?.setupTimeIllTrackSec))),
+              trackRangeKm: numberOrZero(item?.technical?.akr?.trackRangeKm),
+              azimuthDeg: {
+                min: numberOrZero(item?.technical?.akr?.azimuthDeg?.min),
+                max: numberOrZero(item?.technical?.akr?.azimuthDeg?.max)
+              },
+              elevationDeg: {
+                min: numberOrZero(item?.technical?.akr?.elevationDeg?.min),
+                max: numberOrZero(item?.technical?.akr?.elevationDeg?.max)
+              }
+            }
+          }
+        : {}),
       engagement: {
         effectiveRangeKm: numberOrZero(item?.technical?.engagement?.effectiveRangeKm),
         effectiveAltitudeKm: numberOrZero(item?.technical?.engagement?.effectiveAltitudeKm)
@@ -3881,6 +3985,10 @@ function buildDeployedUnitExport(unit) {
   const munitionCode = String(ffsMunitionCodes[0] || unit.munitionCode || getPreferredMunitionCode(unit.code, unit.assignment) || "").trim();
   const assignmentToken = sanitizeSystemCode(unit.assignmentId || munitionCode || "ASSIGN");
   const unitId = `${unit.planId}_${sanitizeSystemCode(unit.code)}_${assignmentToken}${String(unit.sequence).padStart(2, "0")}`;
+  const radarHvaValue = Math.max(1, Math.min(10, Math.round(numberOrZero(unit.componentSpec?.radarHVAValue) || 1)));
+  const akrBlindSectors = normalizeBlindSectors(
+    unit.components.ffs.flatMap((item) => normalizeBlindSectors(item?.blindSectors))
+  );
 
   return {
     id: unitId,
@@ -3899,7 +4007,7 @@ function buildDeployedUnitExport(unit) {
           x: Math.round(numberOrZero(unit.components.radar.x)),
           y: Math.round(numberOrZero(unit.components.radar.y))
         },
-        HVA_value: Math.max(1, Math.min(10, Math.round(numberOrZero(unit.componentSpec?.radarHVAValue) || 1))),
+        HVA_value: radarHvaValue,
         blindSectors: normalizeBlindSectors(unit.components.radar.blindSectors)
       },
       kkm: {
@@ -3916,7 +4024,9 @@ function buildDeployedUnitExport(unit) {
               position: {
                 x: Math.round(numberOrZero(unit.components.akr.x)),
                 y: Math.round(numberOrZero(unit.components.akr.y))
-              }
+              },
+              HVA_value: radarHvaValue,
+              blindSectors: akrBlindSectors
             }
           }
         : {}),
@@ -6102,14 +6212,1005 @@ function sanitizeFilename(value) {
 
 function downloadJsonFile(payload, filename) {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  document.body.append(anchor);
-  anchor.click();
-  anchor.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 0);
+  return downloadBlob(blob, filename);
+}
+
+function downloadBlob(blob, filename) {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.style.display = "none";
+    document.body.append(anchor);
+    requestAnimationFrame(() => {
+      anchor.click();
+      setTimeout(() => {
+        anchor.remove();
+        URL.revokeObjectURL(url);
+        resolve();
+      }, 800);
+    });
+  });
+}
+
+async function downloadScenarioPdfFile(payload, filename) {
+  const pages = await renderScenarioReportPages(payload);
+  const pdfBytes = buildPdfDocumentFromPages(pages, 595, 842);
+  const blob = new Blob([pdfBytes], { type: "application/pdf" });
+  return downloadBlob(blob, filename);
+}
+
+function waitMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function renderScenarioReportPages(payload) {
+  const report = buildScenarioReportModel(payload);
+  const pageWidthPt = 595;
+  const pageHeightPt = 842;
+  const scale = 2;
+  const pageWidth = pageWidthPt * scale;
+  const pageHeight = pageHeightPt * scale;
+  const margin = 20 * scale;
+  const contentWidth = pageWidth - margin * 2;
+  const blue = "#002060";
+  const border = "#c7c7c7";
+  const paper = "#fbfaf7";
+  const panel = "#ffffff";
+  const logo = await loadImageSafe(buildDataUrl("MilliSavunmaUniversitesiLogo.png"));
+  const pages = [];
+
+  function createPage() {
+    const canvas = document.createElement("canvas");
+    canvas.width = pageWidth;
+    canvas.height = pageHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = paper;
+    ctx.fillRect(0, 0, pageWidth, pageHeight);
+    ctx.strokeStyle = border;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(margin, margin, contentWidth, pageHeight - margin * 2);
+
+    const headerRect = { x: margin, y: margin, w: contentWidth, h: 54 * scale };
+    ctx.fillStyle = panel;
+    ctx.fillRect(headerRect.x, headerRect.y, headerRect.w, headerRect.h);
+    ctx.strokeRect(headerRect.x, headerRect.y, headerRect.w, headerRect.h);
+
+    let titleStartX = headerRect.x + 50;
+    let logoDrawWidth = 0;
+    if (logo) {
+      const maxHeight = 44 * scale;
+      const ratio = logo.naturalWidth / Math.max(1, logo.naturalHeight);
+      const drawWidth = maxHeight * ratio;
+      logoDrawWidth = drawWidth;
+      ctx.drawImage(logo, headerRect.x + 8, headerRect.y + (headerRect.h - maxHeight) / 2, drawWidth, maxHeight);
+      titleStartX = headerRect.x + 8 + drawWidth + 12;
+    }
+
+    const titleBlockHeight = (15 * scale * 1.22) + (11.5 * scale * 1.22);
+    const titleBlockY = headerRect.y + (headerRect.h - titleBlockHeight) / 2;
+    const titleBlockWidth = headerRect.w - (titleStartX - headerRect.x) - 16;
+    drawCanvasText(ctx, "MSÜ Senaryo Planlama WEB Arayüzü", titleStartX, titleBlockY, 15 * scale, {
+      bold: true,
+      align: "center",
+      maxWidth: titleBlockWidth
+    });
+    drawCanvasText(ctx, "Senaryo Özet Dokümanı", titleStartX, titleBlockY + (15 * scale * 1.22), 11.5 * scale, {
+      bold: true,
+      align: "center",
+      maxWidth: titleBlockWidth
+    });
+
+    return { canvas, ctx };
+  }
+
+  const first = createPage();
+  pages.push(first.canvas);
+
+  const topY = margin + 64 * scale;
+  const topHeight = 138 * scale;
+  const leftWidth = 220 * scale;
+  const rightWidth = contentWidth - leftWidth;
+  const leftRect = { x: margin, y: topY, w: leftWidth, h: topHeight };
+  const rightRect = { x: margin + leftWidth, y: topY, w: rightWidth, h: topHeight };
+
+  for (const rect of [leftRect, rightRect]) {
+    first.ctx.fillStyle = panel;
+    first.ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+    first.ctx.strokeStyle = border;
+    first.ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+  }
+
+  drawCanvasText(first.ctx, "Senaryo Bilgisi:", leftRect.x + 10, leftRect.y + 8, 11 * scale, {
+    bold: true,
+    color: blue
+  });
+  drawCanvasText(first.ctx, "Senaryo Özeti:", rightRect.x + 10, rightRect.y + 8, 11 * scale, {
+    bold: true,
+    color: blue
+  });
+
+  const leftLabelWidth = 120 * scale;
+  const leftLabelX = leftRect.x + 10;
+  const leftValueX = leftLabelX + leftLabelWidth + 10;
+  const leftValueWidth = leftRect.x + leftRect.w - leftValueX - 10;
+  let infoY = leftRect.y + 32 * scale;
+  for (const item of report.infoLines) {
+    const labelHeight = measureWrappedCanvasText(first.ctx, item.label, leftLabelWidth, 9 * scale, true);
+    const valueHeight = measureWrappedCanvasText(first.ctx, item.value, leftValueWidth, 9 * scale, false);
+    drawCanvasText(first.ctx, item.label, leftLabelX, infoY, 9 * scale, {
+      bold: true,
+      maxWidth: leftLabelWidth
+    });
+    drawCanvasText(first.ctx, item.value, leftValueX, infoY, 9 * scale, { maxWidth: leftValueWidth });
+    infoY += Math.max(labelHeight, valueHeight) + 7;
+  }
+
+  const rightLabelWidth = 78 * scale;
+  const rightLabelX = rightRect.x + 10;
+  const rightValueX = rightLabelX + rightLabelWidth + 10;
+  const rightValueWidth = rightRect.x + rightRect.w - rightValueX - 10;
+  let summaryY = rightRect.y + 32 * scale;
+  for (const item of report.summaryLines) {
+    const labelHeight = measureWrappedCanvasText(first.ctx, item.label, rightLabelWidth, 9 * scale, true);
+    const valueHeight = measureWrappedCanvasText(first.ctx, item.value, rightValueWidth, 9 * scale, false);
+    drawCanvasText(first.ctx, item.label, rightLabelX, summaryY, 9 * scale, {
+      bold: true,
+      maxWidth: rightLabelWidth
+    });
+    drawCanvasText(first.ctx, item.value, rightValueX, summaryY, 9 * scale, { maxWidth: rightValueWidth });
+    summaryY += Math.max(labelHeight, valueHeight) + 7;
+  }
+
+  const mapPanel = {
+    x: margin,
+    y: topY + topHeight + 12 * scale,
+    w: contentWidth,
+    h: 240 * scale
+  };
+  first.ctx.fillStyle = panel;
+  first.ctx.fillRect(mapPanel.x, mapPanel.y, mapPanel.w, mapPanel.h);
+  first.ctx.strokeRect(mapPanel.x, mapPanel.y, mapPanel.w, mapPanel.h);
+
+  drawReportMap(
+    first.ctx,
+    report,
+    {
+      x: mapPanel.x + 10,
+      y: mapPanel.y + 18,
+      w: mapPanel.w - 20,
+      h: mapPanel.h - 50
+    },
+    scale
+  );
+  drawReportLegend(first.ctx, {
+    x: mapPanel.x + 12,
+    y: mapPanel.y + mapPanel.h - 22,
+    w: mapPanel.w - 24,
+    h: 16
+  }, scale);
+
+  const flowLines = buildScenarioReportFlowLines(report);
+  let currentPage = first;
+  let cursorY = mapPanel.y + mapPanel.h + 12 * scale;
+  const bodyTopY = margin + 64 * scale;
+  const availableBottom = pageHeight - margin;
+
+  for (const line of flowLines) {
+    const width = contentWidth - (line.indent || 0) * scale - 24;
+    const height = measureWrappedCanvasText(currentPage.ctx, line.text, width, line.fontSize * scale, line.bold);
+    const gapBefore = (line.gapBefore || 0) * scale;
+    const gapAfter = (line.gapAfter || 0) * scale;
+    const needed = gapBefore + height + gapAfter;
+
+    if (cursorY + needed > availableBottom) {
+      currentPage = createPage();
+      pages.push(currentPage.canvas);
+      cursorY = bodyTopY;
+    }
+
+    cursorY += gapBefore;
+    drawCanvasText(currentPage.ctx, line.text, margin + 10 + (line.indent || 0) * scale, cursorY, line.fontSize * scale, {
+      bold: Boolean(line.bold),
+      underline: Boolean(line.underline),
+      color: line.color || "#111111",
+      maxWidth: width,
+      align: line.align || "left"
+    });
+    cursorY += height + gapAfter;
+  }
+
+  return pages.map((canvas) => ({
+    dataUrl: canvas.toDataURL("image/jpeg", 0.92),
+    width: canvas.width,
+    height: canvas.height
+  }));
+}
+
+function buildScenarioReportModel(payload) {
+  const assets = (Array.isArray(payload?.protectedAssets) ? payload.protectedAssets : []).map((asset) => {
+    const geometry = asset?.geometry && typeof asset.geometry === "object" ? asset.geometry : {};
+    const coords = geometry.coordinates;
+    const isEirs = String(asset?.id || "").toUpperCase().startsWith("E") || String(asset?.assetClass || "").toLowerCase().includes("eirs");
+    if (geometry.type === "Point" && coords && typeof coords === "object" && !Array.isArray(coords)) {
+      return {
+        userId: String(asset?.name || asset?.id || "-"),
+        systemId: String(asset?.id || "-"),
+        hva: String(asset?.HVA_value ?? "-"),
+        kind: "Nokta",
+        coordText: `${formatReportNumber(coords.x)}, ${formatReportNumber(coords.y)}`,
+        point: { x: Number(coords.x) || 0, y: Number(coords.y) || 0 },
+        polygon: [],
+        isEirs
+      };
+    }
+    const polygon = (Array.isArray(coords) ? coords : [])
+      .filter((item) => item && typeof item === "object")
+      .map((point) => ({ x: Number(point.x) || 0, y: Number(point.y) || 0 }));
+    return {
+      userId: String(asset?.name || asset?.id || "-"),
+      systemId: String(asset?.id || "-"),
+      hva: String(asset?.HVA_value ?? "-"),
+      kind: "Bölge",
+      coordText: polygon.map((point) => `(${formatReportNumber(point.x)}, ${formatReportNumber(point.y)})`).join(", "),
+      point: null,
+      polygon,
+      isEirs
+    };
+  });
+
+  const deploymentPlanById = new Map(
+    (Array.isArray(payload?.deploymentPlans) ? payload.deploymentPlans : []).map((plan) => [String(plan?.id || ""), String(plan?.protectedAssetId || "-")])
+  );
+
+  const hssUnits = (Array.isArray(payload?.deployedUnits) ? payload.deployedUnits : []).map((unit) => {
+    const radar = unit?.components?.radar && typeof unit.components.radar === "object" ? unit.components.radar : {};
+    const position = radar?.position && typeof radar.position === "object"
+      ? { x: Number(radar.position.x) || 0, y: Number(radar.position.y) || 0 }
+      : null;
+    const assetSystemId = deploymentPlanById.get(String(unit?.planId || "")) || "-";
+    const assetUser = assets.find((item) => item.systemId === assetSystemId)?.userId || assetSystemId;
+    return {
+      systemCode: String(unit?.systemCode || "-"),
+      unitId: String(unit?.id || "-"),
+      assetSystemId,
+      assetUserId: assetUser,
+      ffsCount: Array.isArray(unit?.components?.ffs) ? unit.components.ffs.length : 0,
+      position,
+      hvaValue: String(radar?.HVA_value ?? "-")
+    };
+  });
+
+  const threatEntities = Array.isArray(payload?.threatScenario?.entities) ? payload.threatScenario.entities : [];
+  const platforms = [];
+  const ballistics = [];
+  for (const entity of threatEntities) {
+    if (entity?.entityType === "KinematicTarget") {
+      const flightPlan = entity?.flightPlan && typeof entity.flightPlan === "object" ? entity.flightPlan : {};
+      const initialState = flightPlan.initialState && typeof flightPlan.initialState === "object" ? flightPlan.initialState : {};
+      const route = [];
+      if (Array.isArray(initialState.position) && initialState.position.length >= 2) {
+        route.push({ x: Number(initialState.position[0]) || 0, y: Number(initialState.position[1]) || 0 });
+      }
+      for (const waypoint of Array.isArray(flightPlan.waypoints) ? flightPlan.waypoints : []) {
+        if (Array.isArray(waypoint?.position) && waypoint.position.length >= 2) {
+          route.push({ x: Number(waypoint.position[0]) || 0, y: Number(waypoint.position[1]) || 0 });
+        }
+      }
+      const payloads = Array.isArray(entity?.payload) ? entity.payload : [];
+      const ammoType = payloads.length ? "Stand-off Mühimmat" : "Klasik Mühimmat";
+      let targetId = matchReportAssetId(route[route.length - 1], assets);
+      let manualPoint = null;
+      const payloadRows = payloads.map((payloadRow) => {
+        const targetDef = payloadRow?.targetDefinition && typeof payloadRow.targetDefinition === "object" ? payloadRow.targetDefinition : {};
+        const payloadTargetId = String(targetDef.defendedAssetId || matchReportAssetId(toReportPoint(payloadRow?.targetPoint), assets) || "-");
+        const payloadManual = String(targetDef.mode || "").toLowerCase() === "manual" && Array.isArray(payloadRow?.targetPoint3D)
+          ? formatReportPoint3(payloadRow.targetPoint3D)
+          : null;
+        const releasePoint = toReportPoint(payloadRow?.releasePoint);
+        const targetPoint = toReportPoint(payloadRow?.targetPoint);
+        return {
+          payloadId: String(payloadRow?.id || "-"),
+          targetId: payloadTargetId,
+          releaseTime: formatReportNumber(payloadRow?.release?.time),
+          tot: formatReportNumber(payloadRow?.targetTot),
+          manualPoint: payloadManual,
+          releasePoint,
+          targetPoint
+        };
+      });
+      if (payloads[0]?.targetDefinition) {
+        const targetDef = payloads[0].targetDefinition || {};
+        targetId = String(targetDef.defendedAssetId || matchReportAssetId(toReportPoint(payloads[0]?.targetPoint), assets) || "-");
+        if (String(targetDef.mode || "").toLowerCase() === "manual" && Array.isArray(payloads[0]?.targetPoint3D)) {
+          manualPoint = formatReportPoint3(payloads[0].targetPoint3D);
+        }
+      }
+      platforms.push({
+        platformId: String(entity?.id || "-"),
+        targetId,
+        takeoffTime: formatReportNumber(flightPlan?.takeoffTime),
+        tot: payloadRows[0]?.tot || formatReportNumber(payload?.threatScenario?.planning?.platformTot),
+        ammoType,
+        manualPoint,
+        route,
+        payloads: payloadRows
+      });
+    } else if (entity?.entityType === "BallisticTarget") {
+      const trajectory = entity?.trajectory && typeof entity.trajectory === "object" ? entity.trajectory : {};
+      const terminal = trajectory.terminal && typeof trajectory.terminal === "object" ? trajectory.terminal : {};
+      const impactDef = entity?.impactDefinition && typeof entity.impactDefinition === "object" ? entity.impactDefinition : {};
+      const route = [toReportPoint(trajectory.launchPoint), toReportPoint(terminal.impactPoint)].filter(Boolean);
+      const manualPoint = String(impactDef.mode || "").toLowerCase() === "manual" && Array.isArray(impactDef.impactPoint)
+        ? formatReportPoint3(impactDef.impactPoint)
+        : null;
+      ballistics.push({
+        ballisticId: String(entity?.id || "-"),
+        targetId: String(impactDef.defendedAssetId || matchReportAssetId(toReportPoint(terminal.impactPoint), assets) || "-"),
+        launchTime: formatReportNumber(entity?.launchTime),
+        impactTime: formatReportNumber(entity?.impactTime),
+        manualPoint,
+        route
+      });
+    }
+  }
+
+  const scenarioName = String(payload?.scenarioName || "Birlesik Senaryo");
+  const fileName = `${sanitizeFilename(scenarioName) || "msu_senaryo"}.json`;
+  const createdAt = new Intl.DateTimeFormat("tr-TR", {
+    dateStyle: "short",
+    timeStyle: "short"
+  }).format(new Date());
+  const defendedCount = assets.filter((item) => !item.isEirs).length;
+  const eirsCount = assets.filter((item) => item.isEirs).length;
+  const payloadCount = platforms.reduce((sum, item) => sum + item.payloads.length, 0);
+  return {
+    scenarioName,
+    infoLines: [
+      { label: "Senaryo Dosya Adı:", value: fileName },
+      { label: "Senaryo ID:", value: String(payload?.scenarioId || "-") },
+      { label: "Tanımlı Tehdit İstikameti:", value: normalizeThreatDirectionLabel(payload?.scenarioThreatDirection) },
+      { label: "Oluşturulma Zamanı:", value: createdAt }
+    ],
+    summaryLines: [
+      { label: "Varlık:", value: `${defendedCount}xSV, ${eirsCount}xEİRS` },
+      {
+        label: "HSS:",
+        value: ["HSS-N", "HSS-A", "HSS-O", "HSS-U", "HSS-F"]
+          .map((code) => `${hssUnits.filter((unit) => unit.systemCode === code).length}x${code}`)
+          .join(", ")
+      },
+      { label: "Platform:", value: `${platforms.length}xPlatform, ${payloadCount}xPayload` },
+      { label: "Balistik:", value: `${ballistics.length}xBalistik` }
+    ],
+    assets,
+    hssUnits,
+    platforms,
+    ballistics
+  };
+}
+
+function buildScenarioReportFlowLines(report) {
+  const lines = [
+    { text: "TANIMLANAN VARLIKLAR", fontSize: 12, bold: true, color: "#002060", align: "center", gapAfter: 8 }
+  ];
+
+  lines.push({ text: "Savunulan Varlıklar:", fontSize: 10, bold: true, underline: true, gapAfter: 2 });
+  const defendedAssets = report.assets.filter((item) => !item.isEirs);
+  if (!defendedAssets.length) {
+    lines.push({ text: "-", fontSize: 8.6, indent: 2, gapAfter: 2 });
+  }
+  for (const [index, asset] of defendedAssets.entries()) {
+    lines.push({
+      text: `${index + 1}. '${asset.userId}' : [HVA Değ: ${asset.hva}], [${asset.kind}], [Koordinat: ${asset.coordText}], [Sistem ID: ${asset.systemId}]`,
+      fontSize: 8.6,
+      indent: 2,
+      gapAfter: 2
+    });
+  }
+
+  lines.push({ text: "EİRS:", fontSize: 10, bold: true, underline: true, gapBefore: 4, gapAfter: 2 });
+  const eirsAssets = report.assets.filter((item) => item.isEirs);
+  if (!eirsAssets.length) {
+    lines.push({ text: "-", fontSize: 8.6, indent: 2, gapAfter: 2 });
+  }
+  for (const [index, asset] of eirsAssets.entries()) {
+    lines.push({
+      text: `${index + 1}. '${asset.userId}' : [HVA Değ: ${asset.hva}], [Koordinat: ${asset.coordText}], [Sistem ID: ${asset.systemId}]`,
+      fontSize: 8.6,
+      indent: 2,
+      gapAfter: 2
+    });
+  }
+
+  lines.push({ text: "Hava Savunma Konuşu:", fontSize: 10, bold: true, underline: true, gapBefore: 4, gapAfter: 2 });
+  for (const code of ["HSS-N", "HSS-A", "HSS-O", "HSS-U", "HSS-F"]) {
+    lines.push({ text: `${code}:`, fontSize: 9, underline: true, gapAfter: 2 });
+    const related = report.hssUnits.filter((item) => item.systemCode === code);
+    if (!related.length) {
+      lines.push({ text: "[Adet: 0]", fontSize: 8.5, indent: 18, gapAfter: 2 });
+      continue;
+    }
+    for (const unit of related) {
+      lines.push({
+        text: `[KV: ${unit.assetUserId}] [${unit.ffsCount} x ${code === "HSS-N" ? "Top" : "FFS"}] [KV-HSS Sis.ID İlişkisi: (${unit.assetSystemId} - ${unit.unitId})], [HVA Değ: ${unit.hvaValue}], [Koordinat: ${unit.position ? `${formatReportNumber(unit.position.x)}, ${formatReportNumber(unit.position.y)}` : "-"}]`,
+        fontSize: 8.5,
+        indent: 18,
+        gapAfter: 2
+      });
+    }
+  }
+
+  lines.push({ text: "TEHDİT PLANLAMASI", fontSize: 12, bold: true, color: "#002060", align: "center", gapBefore: 8, gapAfter: 8 });
+  lines.push({ text: "Platform:", fontSize: 10, bold: true, underline: true, gapAfter: 2 });
+  if (!report.platforms.length) {
+    lines.push({ text: "-", fontSize: 9, indent: 2, gapAfter: 2 });
+  }
+  for (const [index, platform] of report.platforms.entries()) {
+    let text = `${index + 1}. [ID: ${platform.platformId}], [Hedef: ${platform.targetId}], [Takeoff: ${platform.takeoffTime}], [Tot: ${platform.tot}], [${platform.ammoType}]`;
+    if (platform.manualPoint) {
+      text += ` ${platform.manualPoint}`;
+    }
+    lines.push({ text, fontSize: 9, indent: 2, gapAfter: 2 });
+    for (const [payloadIndex, payload] of platform.payloads.entries()) {
+      let payloadText = `${String.fromCharCode(97 + payloadIndex)}. [ID: ${payload.payloadId}, ${payload.targetId}], [Release Time: ${payload.releaseTime}], [Tot: ${payload.tot}]`;
+      if (payload.manualPoint) {
+        payloadText += ` ${payload.manualPoint}`;
+      }
+      lines.push({ text: payloadText, fontSize: 9, indent: 18, gapAfter: 2 });
+    }
+  }
+
+  lines.push({ text: "Balistik:", fontSize: 10, bold: true, underline: true, gapBefore: 4, gapAfter: 2 });
+  if (!report.ballistics.length) {
+    lines.push({ text: "-", fontSize: 9, indent: 2, gapAfter: 2 });
+  }
+  for (const [index, ballistic] of report.ballistics.entries()) {
+    let text = `${index + 1}. [ID: ${ballistic.ballisticId}], [Hedef: ${ballistic.targetId}], [Launch T: ${ballistic.launchTime}], [Impact T: ${ballistic.impactTime}]`;
+    if (ballistic.manualPoint) {
+      text += ` ${ballistic.manualPoint}`;
+    }
+    lines.push({ text, fontSize: 9, indent: 2, gapAfter: 2 });
+  }
+
+  return lines;
+}
+
+function drawCanvasText(ctx, text, x, y, fontSize, options = {}) {
+  const {
+    bold = false,
+    color = "#111111",
+    underline = false,
+    maxWidth = null,
+    align = "left"
+  } = options;
+  ctx.save();
+  ctx.font = `${bold ? "700 " : ""}${fontSize}px "Times New Roman", serif`;
+  ctx.fillStyle = color;
+  ctx.textAlign = align === "center" ? "center" : align === "right" ? "right" : "left";
+  ctx.textBaseline = "top";
+  const width = maxWidth || 100000;
+  const lines = wrapCanvasText(ctx, text, width);
+  let cursorY = y;
+  const anchorX = align === "center" ? x + width / 2 : align === "right" ? x + width : x;
+  for (const line of lines) {
+    ctx.fillText(line, anchorX, cursorY);
+    if (underline) {
+      const measured = ctx.measureText(line).width;
+      const lineX = align === "center" ? anchorX - measured / 2 : align === "right" ? anchorX - measured : anchorX;
+      const underlineY = cursorY + fontSize + 1;
+      ctx.beginPath();
+      ctx.moveTo(lineX, underlineY);
+      ctx.lineTo(lineX + measured, underlineY);
+      ctx.lineWidth = Math.max(1, fontSize / 18);
+      ctx.strokeStyle = color;
+      ctx.stroke();
+    }
+    cursorY += fontSize * 1.22;
+  }
+  ctx.restore();
+}
+
+function wrapCanvasText(ctx, text, maxWidth) {
+  const value = String(text || "");
+  if (!Number.isFinite(maxWidth) || maxWidth <= 0) {
+    return [value];
+  }
+  const paragraphs = value.split("\n");
+  const lines = [];
+  for (const paragraph of paragraphs) {
+    const words = paragraph.split(/\s+/).filter(Boolean);
+    if (!words.length) {
+      lines.push("");
+      continue;
+    }
+    let current = words[0];
+    for (const word of words.slice(1)) {
+      const next = `${current} ${word}`;
+      if (ctx.measureText(next).width <= maxWidth) {
+        current = next;
+      } else {
+        lines.push(current);
+        current = word;
+      }
+    }
+    lines.push(current);
+  }
+  return lines;
+}
+
+function measureWrappedCanvasText(ctx, text, maxWidth, fontSize, bold = false) {
+  ctx.save();
+  ctx.font = `${bold ? "700 " : ""}${fontSize}px "Times New Roman", serif`;
+  const lines = wrapCanvasText(ctx, text, maxWidth);
+  ctx.restore();
+  return Math.max(fontSize * 1.22, lines.length * fontSize * 1.22);
+}
+
+function normalizeThreatDirectionLabel(value) {
+  switch (String(value || "").toLowerCase()) {
+    case "north":
+      return "Kuzey";
+    case "south":
+      return "Güney";
+    case "east":
+      return "Doğu";
+    case "west":
+      return "Batı";
+    default:
+      return "Tanımlanmamıştır.";
+  }
+}
+
+function formatReportNumber(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) {
+    return "-";
+  }
+  if (Math.abs(num - Math.round(num)) < 0.001) {
+    return String(Math.round(num));
+  }
+  return num.toFixed(2);
+}
+
+function toReportPoint(value) {
+  if (!Array.isArray(value) || value.length < 2) {
+    return null;
+  }
+  return { x: Number(value[0]) || 0, y: Number(value[1]) || 0 };
+}
+
+function formatReportPoint3(values) {
+  if (!Array.isArray(values)) {
+    return "(-, -, -)";
+  }
+  const x = formatReportNumber(values[0]);
+  const y = formatReportNumber(values[1]);
+  const z = formatReportNumber(values[2] ?? 0);
+  return `(${x}, ${y}, ${z})`;
+}
+
+function pointInReportPolygon(point, polygon) {
+  if (!point || !Array.isArray(polygon) || polygon.length < 3) {
+    return false;
+  }
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].x;
+    const yi = polygon[i].y;
+    const xj = polygon[j].x;
+    const yj = polygon[j].y;
+    const intersect = ((yi > point.y) !== (yj > point.y))
+      && (point.x < ((xj - xi) * (point.y - yi)) / ((yj - yi) || 1e-9) + xi);
+    if (intersect) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function matchReportAssetId(point, assets) {
+  if (!point) {
+    return "-";
+  }
+  for (const asset of assets) {
+    if (asset.point && Math.abs(asset.point.x - point.x) < 1 && Math.abs(asset.point.y - point.y) < 1) {
+      return asset.systemId;
+    }
+    if (pointInReportPolygon(point, asset.polygon)) {
+      return asset.systemId;
+    }
+  }
+  return "-";
+}
+
+function drawReportMap(ctx, report, rect, scale) {
+  ctx.save();
+  ctx.fillStyle = "#f7f7f7";
+  ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+  ctx.strokeStyle = "#bfbfbf";
+  ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+  for (let i = 1; i < 8; i += 1) {
+    const x = rect.x + (rect.w * i) / 8;
+    ctx.beginPath();
+    ctx.moveTo(x, rect.y);
+    ctx.lineTo(x, rect.y + rect.h);
+    ctx.strokeStyle = "#e2e2e2";
+    ctx.stroke();
+  }
+  for (let i = 1; i < 5; i += 1) {
+    const y = rect.y + (rect.h * i) / 5;
+    ctx.beginPath();
+    ctx.moveTo(rect.x, y);
+    ctx.lineTo(rect.x + rect.w, y);
+    ctx.strokeStyle = "#e2e2e2";
+    ctx.stroke();
+  }
+
+  const points = [];
+  for (const asset of report.assets) {
+    if (asset.point) {
+      points.push(asset.point);
+    }
+    points.push(...asset.polygon);
+  }
+  for (const unit of report.hssUnits) {
+    if (unit.position) {
+      points.push(unit.position);
+    }
+  }
+  for (const platform of report.platforms) {
+    points.push(...platform.route);
+    for (const payload of platform.payloads) {
+      if (payload.releasePoint) {
+        points.push(payload.releasePoint);
+      }
+      if (payload.targetPoint) {
+        points.push(payload.targetPoint);
+      }
+    }
+  }
+  for (const ballistic of report.ballistics) {
+    points.push(...ballisticsPathPoints(ballistic));
+  }
+  if (!points.length) {
+    drawReportNorthArrow(ctx, rect, scale);
+    ctx.restore();
+    return;
+  }
+
+  const xs = points.map((point) => point.x);
+  const ys = points.map((point) => point.y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const padX = (maxX - minX) * 0.12 + 1;
+  const padY = (maxY - minY) * 0.12 + 1;
+  const world = {
+    minX: minX - padX,
+    maxX: maxX + padX,
+    minY: minY - padY,
+    maxY: maxY + padY
+  };
+
+  const mapPoint = (point) => ({
+    x: rect.x + ((point.x - world.minX) / Math.max(world.maxX - world.minX, 1)) * rect.w,
+    y: rect.y + rect.h - ((point.y - world.minY) / Math.max(world.maxY - world.minY, 1)) * rect.h
+  });
+
+  for (const platform of report.platforms) {
+    const mapped = platform.route.map(mapPoint);
+    if (mapped.length < 2) {
+      continue;
+    }
+    ctx.save();
+    ctx.strokeStyle = "#c24cf0";
+    ctx.lineWidth = 2.2 * scale;
+    ctx.beginPath();
+    ctx.moveTo(mapped[0].x, mapped[0].y);
+    for (const point of mapped.slice(1)) {
+      ctx.lineTo(point.x, point.y);
+    }
+    ctx.stroke();
+    for (const point of mapped) {
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, 2.4 * scale, 0, Math.PI * 2);
+      ctx.fillStyle = "#c24cf0";
+      ctx.fill();
+    }
+    drawCanvasText(ctx, platform.platformId, mapped[0].x + 4, mapped[0].y - 12, 8 * scale, { color: "#c24cf0" });
+    ctx.restore();
+  }
+
+  for (const platform of report.platforms) {
+    for (const payload of platform.payloads) {
+      const mappedRelease = payload.releasePoint ? mapPoint(payload.releasePoint) : null;
+      const mappedTarget = payload.targetPoint ? mapPoint(payload.targetPoint) : null;
+      if (!mappedRelease && !mappedTarget) {
+        continue;
+      }
+      ctx.save();
+      ctx.strokeStyle = "#7a3db8";
+      ctx.fillStyle = "#7a3db8";
+      ctx.lineWidth = 1.7 * scale;
+      ctx.setLineDash([4 * scale, 3 * scale]);
+      if (mappedRelease && mappedTarget) {
+        ctx.beginPath();
+        ctx.moveTo(mappedRelease.x, mappedRelease.y);
+        ctx.lineTo(mappedTarget.x, mappedTarget.y);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      if (mappedRelease) {
+        ctx.beginPath();
+        ctx.rect(mappedRelease.x - 2.3 * scale, mappedRelease.y - 2.3 * scale, 4.6 * scale, 4.6 * scale);
+        ctx.fill();
+      }
+      if (mappedTarget) {
+        ctx.beginPath();
+        ctx.moveTo(mappedTarget.x, mappedTarget.y - 4.5 * scale);
+        ctx.lineTo(mappedTarget.x + 4.5 * scale, mappedTarget.y);
+        ctx.lineTo(mappedTarget.x, mappedTarget.y + 4.5 * scale);
+        ctx.lineTo(mappedTarget.x - 4.5 * scale, mappedTarget.y);
+        ctx.closePath();
+        ctx.fill();
+        drawCanvasText(ctx, payload.payloadId, mappedTarget.x + 5, mappedTarget.y - 10, 7.5 * scale, { color: "#7a3db8" });
+      } else if (mappedRelease) {
+        drawCanvasText(ctx, payload.payloadId, mappedRelease.x + 5, mappedRelease.y - 10, 7.5 * scale, { color: "#7a3db8" });
+      }
+      ctx.restore();
+    }
+  }
+
+  for (const ballistic of report.ballistics) {
+    const mapped = ballisticsPathPoints(ballistic).map(mapPoint);
+    if (mapped.length < 2) {
+      continue;
+    }
+    ctx.save();
+    ctx.strokeStyle = "#e5524d";
+    ctx.lineWidth = 2.4 * scale;
+    ctx.setLineDash([7 * scale, 4 * scale]);
+    ctx.beginPath();
+    ctx.moveTo(mapped[0].x, mapped[0].y);
+    for (const point of mapped.slice(1)) {
+      ctx.lineTo(point.x, point.y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    for (const point of mapped) {
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, 2.6 * scale, 0, Math.PI * 2);
+      ctx.fillStyle = "#e5524d";
+      ctx.fill();
+    }
+    drawCanvasText(ctx, ballistic.ballisticId, mapped[0].x + 4, mapped[0].y - 12, 8 * scale, { color: "#e5524d" });
+    ctx.restore();
+  }
+
+  for (const asset of report.assets.filter((item) => item.polygon.length)) {
+    const mapped = asset.polygon.map(mapPoint);
+    ctx.save();
+    ctx.fillStyle = "rgba(221, 232, 214, 0.8)";
+    ctx.strokeStyle = "#7f8f7a";
+    ctx.beginPath();
+    ctx.moveTo(mapped[0].x, mapped[0].y);
+    for (const point of mapped.slice(1)) {
+      ctx.lineTo(point.x, point.y);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    const center = {
+      x: mapped.reduce((sum, point) => sum + point.x, 0) / mapped.length,
+      y: mapped.reduce((sum, point) => sum + point.y, 0) / mapped.length
+    };
+    drawCanvasText(ctx, asset.systemId, center.x - 20, center.y - 8, 8 * scale, { bold: true, align: "center", maxWidth: 40 * scale });
+    ctx.restore();
+  }
+
+  for (const asset of report.assets.filter((item) => item.point)) {
+    const mapped = mapPoint(asset.point);
+    ctx.save();
+    ctx.fillStyle = "#d7c493";
+    ctx.strokeStyle = "#916f3f";
+    ctx.beginPath();
+    ctx.moveTo(mapped.x, mapped.y - 6 * scale);
+    ctx.lineTo(mapped.x + 6 * scale, mapped.y);
+    ctx.lineTo(mapped.x, mapped.y + 6 * scale);
+    ctx.lineTo(mapped.x - 6 * scale, mapped.y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    drawCanvasText(ctx, asset.systemId, mapped.x + 8, mapped.y - 8, 8 * scale);
+    ctx.restore();
+  }
+
+  const systemColors = {
+    "HSS-N": "#5cab68",
+    "HSS-A": "#e39c4f",
+    "HSS-O": "#62c6d1",
+    "HSS-U": "#4f8df1",
+    "HSS-F": "#9f8566"
+  };
+  for (const unit of report.hssUnits) {
+    if (!unit.position) {
+      continue;
+    }
+    const mapped = mapPoint(unit.position);
+    ctx.save();
+    ctx.fillStyle = systemColors[unit.systemCode] || "#555";
+    ctx.beginPath();
+    ctx.arc(mapped.x, mapped.y, 4.5 * scale, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  drawReportNorthArrow(ctx, rect, scale);
+  ctx.restore();
+}
+
+function ballisticsPathPoints(ballistic) {
+  return Array.isArray(ballistic?.route) ? ballistic.route.filter(Boolean) : [];
+}
+
+function drawReportNorthArrow(ctx, rect, scale) {
+  const x = rect.x + rect.w - 24 * scale;
+  const y = rect.y + 12 * scale;
+  ctx.save();
+  ctx.strokeStyle = "#e5524d";
+  ctx.fillStyle = "#e5524d";
+  ctx.lineWidth = 1.5 * scale;
+  ctx.beginPath();
+  ctx.moveTo(x, y + 22 * scale);
+  ctx.lineTo(x, y + 48 * scale);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x, y + 8 * scale);
+  ctx.lineTo(x - 6 * scale, y + 20 * scale);
+  ctx.lineTo(x + 6 * scale, y + 20 * scale);
+  ctx.closePath();
+  ctx.fill();
+  drawCanvasText(ctx, "N", x - 8 * scale, y + 50 * scale, 9 * scale, { bold: true, color: "#e5524d", maxWidth: 16 * scale, align: "center" });
+  ctx.restore();
+}
+
+function drawReportLegend(ctx, rect, scale) {
+  const items = [
+    ["Korunan", "#d7c493"],
+    ["HSS-N", "#5cab68"],
+    ["HSS-A", "#e39c4f"],
+    ["HSS-O", "#62c6d1"],
+    ["HSS-U", "#4f8df1"],
+    ["HSS-F", "#9f8566"],
+    ["Platform", "#c24cf0"],
+    ["Payload", "#7a3db8"],
+    ["Balistik", "#e5524d"]
+  ];
+  let x = rect.x;
+  for (const item of items) {
+    ctx.save();
+    ctx.fillStyle = item[1];
+    ctx.beginPath();
+    ctx.arc(x + 4 * scale, rect.y + 5 * scale, 4 * scale, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    drawCanvasText(ctx, item[0], x + 12 * scale, rect.y - 1 * scale, 8 * scale);
+    x += 68 * scale;
+  }
+}
+
+async function loadImageSafe(src) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+function buildPdfDocumentFromPages(pages, pageWidthPt, pageHeightPt) {
+  const encoder = new TextEncoder();
+  const objects = new Map();
+  const pageObjectNumbers = [];
+  const totalPages = pages.length;
+  let nextObjectNumber = 3;
+
+  for (let index = 0; index < totalPages; index += 1) {
+    const imageObjectNumber = nextObjectNumber;
+    const contentObjectNumber = nextObjectNumber + 1;
+    const pageObjectNumber = nextObjectNumber + 2;
+    nextObjectNumber += 3;
+    pageObjectNumbers.push(pageObjectNumber);
+
+    const base64 = String(pages[index].dataUrl || "").split(",")[1] || "";
+    const imageBytes = base64ToUint8Array(base64);
+    objects.set(
+      imageObjectNumber,
+      createPdfObject(imageObjectNumber, [
+        `<< /Type /XObject /Subtype /Image /Width ${pages[index].width} /Height ${pages[index].height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${imageBytes.length} >>\nstream\n`,
+        imageBytes,
+        "\nendstream"
+      ])
+    );
+
+    const contentStream = `q\n${pageWidthPt} 0 0 ${pageHeightPt} 0 0 cm\n/Im${index} Do\nQ`;
+    objects.set(
+      contentObjectNumber,
+      createPdfObject(contentObjectNumber, [`<< /Length ${contentStream.length} >>\nstream\n${contentStream}\nendstream`])
+    );
+
+    objects.set(
+      pageObjectNumber,
+      createPdfObject(pageObjectNumber, [
+        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidthPt} ${pageHeightPt}] /Resources << /ProcSet [/PDF /ImageC] /XObject << /Im${index} ${imageObjectNumber} 0 R >> >> /Contents ${contentObjectNumber} 0 R >>`
+      ])
+    );
+  }
+
+  objects.set(1, createPdfObject(1, ["<< /Type /Catalog /Pages 2 0 R >>"]));
+  objects.set(2, createPdfObject(2, [`<< /Type /Pages /Count ${pageObjectNumbers.length} /Kids [${pageObjectNumbers.map((num) => `${num} 0 R`).join(" ")}] >>`]));
+
+  const header = encoder.encode("%PDF-1.4\n%\xFF\xFF\xFF\xFF\n");
+  const orderedObjectNumbers = Array.from(objects.keys()).sort((a, b) => a - b);
+  const parts = [header];
+  const offsets = [0];
+  let currentOffset = header.length;
+  for (const number of orderedObjectNumbers) {
+    offsets[number] = currentOffset;
+    const bytes = objects.get(number);
+    parts.push(bytes);
+    currentOffset += bytes.length;
+  }
+
+  const xrefStart = currentOffset;
+  const xrefLines = [`xref\n0 ${orderedObjectNumbers.length + 1}\n`, "0000000000 65535 f \n"];
+  for (const number of orderedObjectNumbers) {
+    xrefLines.push(`${String(offsets[number]).padStart(10, "0")} 00000 n \n`);
+  }
+  const trailer = `trailer\n<< /Size ${orderedObjectNumbers.length + 1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
+  parts.push(encoder.encode(xrefLines.join("")));
+  parts.push(encoder.encode(trailer));
+  const totalLength = parts.reduce((sum, bytes) => sum + bytes.length, 0);
+  const bytes = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const part of parts) {
+    bytes.set(part, offset);
+    offset += part.length;
+  }
+  return bytes;
+}
+
+function createPdfObject(objectNumber, bodyParts) {
+  const encoder = new TextEncoder();
+  const prefix = encoder.encode(`${objectNumber} 0 obj\n`);
+  const suffix = encoder.encode(`\nendobj\n`);
+  const contentParts = bodyParts.map((part) => (typeof part === "string" ? encoder.encode(part) : part));
+  const totalLength = prefix.length + suffix.length + contentParts.reduce((sum, part) => sum + part.length, 0);
+  const bytes = new Uint8Array(totalLength);
+  let offset = 0;
+  bytes.set(prefix, offset);
+  offset += prefix.length;
+  for (const part of contentParts) {
+    bytes.set(part, offset);
+    offset += part.length;
+  }
+  bytes.set(suffix, offset);
+  return bytes;
+}
+
+function base64ToUint8Array(base64) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
 }
 
 function rotateVector(v, angleRad) {

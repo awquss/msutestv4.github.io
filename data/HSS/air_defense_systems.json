@@ -309,7 +309,7 @@
             "rangeKm": 400,
             "rcsScaling": "range scales with fourth-root of RCS"
           },
-          "illumCapacity": 99,
+          "illumCapacity": 0,
           "setupTimeIllTrackSec": 0,
           "azimuthDeg": {
             "min": 0,
@@ -318,6 +318,20 @@
           "elevationDeg": {
             "min": 0,
             "max": 80
+          }
+        },
+        "akr": {
+          "minTrackRangeM": 1000,
+          "illumCapacity": 10,
+          "setupTimeIllTrackSec": 0,
+          "trackRangeKm": 150,
+          "azimuthDeg": {
+            "min": 0,
+            "max": 360
+          },
+          "elevationDeg": {
+            "min": 0,
+            "max": 90
           }
         },
         "engagement": {
@@ -406,7 +420,7 @@
             "rangeKm": 400,
             "rcsScaling": "range scales with fourth-root of RCS"
           },
-          "illumCapacity": 99,
+          "illumCapacity": 0,
           "setupTimeIllTrackSec": 0,
           "azimuthDeg": {
             "min": 0,
@@ -415,6 +429,20 @@
           "elevationDeg": {
             "min": 0,
             "max": 80
+          }
+        },
+        "akr": {
+          "minTrackRangeM": 1000,
+          "illumCapacity": 10,
+          "setupTimeIllTrackSec": 0,
+          "trackRangeKm": 50,
+          "azimuthDeg": {
+            "min": 0,
+            "max": 360
+          },
+          "elevationDeg": {
+            "min": 0,
+            "max": 90
           }
         },
         "engagement": {

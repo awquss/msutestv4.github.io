@@ -1,0 +1,44 @@
+flowchart TD
+    User[Planlayıcı]
+    Matlab[MATLAB Ortamı]
+
+    Start[MSÜ Senaryo Planlama Ana Ekranı]
+    NewScenario[Yeni senaryo oluştur]
+    EditScenario[Mevcut senaryoyu düzenle]
+
+    subgraph CreateFlow["Yeni Senaryo Akışı"]
+        C1[Korunacak varlıkları tanımla]
+        C2[EİRS kayıtlarını tanımla]
+        C3[HSS katalog ve konuşlandırma kriterlerini JSON dosyalarından yükle]
+        C4[Korunacak varlık veya EİRS için konuşlandırma planı oluştur]
+        C5[Her HSS ataması için birlik adedi, FFS adedi ve mühimmat yükünü gir]
+        C6[Alt bileşen yerleşimlerini ve kör alanları düzenle]
+        C7[Tehdit sekmesini aç]
+        C8[Tehdit kataloglarını önceden yükle ve paylaştır]
+        C9[Platform, payload ve balistik tehdit planını oluştur]
+        C10[Birleşik senaryo JSON önizlemesini üret]
+        C11[Birleşik senaryo JSON dosyasını indir]
+        C12[Dosyayı MATLAB ortamına aktar]
+    end
+
+    subgraph EditFlow["Senaryo Düzenleme Akışı"]
+        E1[Senaryo JSON dosyasını seç]
+        E2[Dosyayı doğrula ve sessionStorage içine aktar]
+        E3[Senaryo ekranını editMode ile aç]
+        E4[Korunacak varlık, EİRS, konuşlandırma ve tehdit kayıtlarını içe aktar]
+        E5[Gerekli düzenlemeleri yap]
+        E6[Birleşik senaryo JSON dosyasını yeniden indir]
+        E7[Güncellenen dosyayı MATLAB ortamına aktar]
+    end
+
+    User --> Start
+    Start --> NewScenario
+    Start --> EditScenario
+
+    NewScenario --> C1 --> C2 --> C3 --> C4 --> C5 --> C6 --> C7 --> C8 --> C9 --> C10 --> C11 --> C12
+    EditScenario --> E1 --> E2 --> E3 --> E4 --> E5 --> E6 --> E7
+
+    C4 -. en az bir kayıt zorunlu .-> C7
+    C9 -. tehdit planı hazırsa .-> C10
+    C11 --> Matlab
+    E6 --> Matlab
